@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>個人輸入介面 - HR Radar</title>
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+<script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/percent.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+<link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+<style>
+  /* ── 覆蓋 style.css 全域干擾 ── */
+  header.d-lg-none { display: none !important; }
+  body { padding-top: 0 !important; }
+
+  /* ── slider 拇指改綠色，軌道保持灰色 ── */
+  .section input[type="range"] {
+    background: #dddddd !important;
+  }
+  .section input[type="range"]::-webkit-slider-thumb {
+    background: #23A094 !important;
+    border: 2px solid #fff !important;
+  }
+  .section input[type="range"]::-moz-range-thumb {
+    background: #23A094 !important;
+    border: 2px solid #fff !important;
+  }
+  .section input[type="range"]::-moz-range-progress {
+    background: #dddddd !important;
+  }
+
+  /* ── pl3 專屬變數 ── */
+  :root {
+    --bg: #f0f0ed; --surface: #fff; --surface2: #f7f7f5;
+    --border: #e2e2dd; --accent: #23A094; --danger: #dc2626;
+    --success: #23A094; --warning: #d97706;
+    --text: #1a1a1a; --muted: #888884; --label: #555550;
+  }
+
+  /* ── Layout ── */
+  .section {
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 12px !important;
+    padding: 20px 24px !important;
+    margin-bottom: 16px !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04) !important;
+  }
+  .section-title {
+    font-size: 16px !important; font-weight: 500 !important;
+    text-transform: uppercase !important; letter-spacing: 0.1em !important;
+    color: #404040 !important; margin-bottom: 18px !important;
+    display: flex !important; align-items: center !important; gap: 8px !important;
+  }
+  .grid-4 { display: grid !important; grid-template-columns: repeat(4,1fr) !important; gap: 16px !important; }
+  .grid-3 { display: grid !important; grid-template-columns: repeat(3,1fr) !important; gap: 16px !important; }
+  .grid-5 { display: grid !important; grid-template-columns: repeat(5,1fr) !important; gap: 16px !important; }
+  .field { display: flex !important; flex-direction: column !important; gap: 6px !important; }
+  .field-label {
+    font-size: 11px !important; font-weight: 500 !important;
+    color: var(--label) !important; text-transform: uppercase !important; letter-spacing: 0.06em !important;
+  }
+  .field-label .unit { font-weight: 400 !important; color: var(--muted) !important; text-transform: none !important; font-size: 10px !important; }
+
+  /* ── Form elements ── */
+  .section select, .section input[type="number"] {
+    width: 100% !important; background: var(--surface2) !important;
+    border: 1px solid var(--border) !important; border-radius: 8px !important;
+    color: var(--text) !important; padding: 9px 12px !important;
+    font-size: 13px !important; outline: none !important; cursor: pointer !important;
+  }
+  .section select:focus, .section input[type="number"]:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1) !important;
+  }
+  .range-val { font-family: 'DM Mono',monospace; font-size: 13px; font-weight: 500; color: var(--accent); text-align: right; }
+  .radio-group { display: flex !important; gap: 8px !important; }
+  .radio-btn {
+    flex: 1 !important; padding: 8px 12px !important; border-radius: 8px !important;
+    background: var(--surface2) !important; border: 1px solid var(--border) !important;
+    color: var(--label) !important; font-size: 13px !important;
+    text-align: center !important; cursor: pointer !important; user-select: none !important;
+  }
+  .radio-btn:hover { border-color: #23A094 !important; color: var(--text) !important; }
+  .radio-btn.selected { background: rgba(35,160,148,0.08) !important; border-color: rgba(35,160,148,0.4) !important; color: #23A094 !important; }
+
+  /* ── Button ── */
+/* ── Button ── */
+.btn-predict {
+  /* 移除 width: 100% */
+  width: auto !important; 
+  /* 增加左右內距讓按鈕更好看 */
+  padding: 12px 28px !important; 
+  
+  background: #ffffff !important; 
+  color: #404040 !important;
+  border: 1px solid #404040 !important;
+  border-radius: 6px !important;
+  font-size: 16px !important; 
+  font-weight: 500 !important;
+  cursor: pointer !important; 
+  text-transform: uppercase !important; 
+  transition: all 0.2s !important;
+  
+  /* 增加圖標與文字的間距 */
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.btn-predict:hover { 
+  background: #23A094 !important; 
+  color: #fffefe !important;
+  transform: translateY(-2px) !important; 
+}
+
+  /* ── Results ── */
+  #result-panel { display: none; animation: fadeSlideIn 0.5s ease; }
+  @keyframes fadeSlideIn { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+  .result-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 20px !important; margin-bottom: 20px !important; align-items: stretch !important; }
+  .metric-card { background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: 14px !important; padding: 24px !important; overflow: hidden !important; }
+  .metric-card.danger  { border-color: rgba(239,68,68,0.3) !important; }
+  .metric-card.success { border-color: rgba(16,185,129,0.3) !important; }
+  .metric-label { font-size: 11px !important; text-transform: uppercase !important; letter-spacing: 0.1em !important; color: #404040 !important; margin-bottom: 15px !important;padding: 10px !important;}
+  .metric-value { font-size: 42px !important; font-weight: 800 !important; line-height: 1 !important; margin-bottom: 12px !important; }
+  .metric-value.danger  { color: var(--danger) !important; }
+  .metric-value.success { color: var(--success) !important; }
+  .progress-bar { height: 6px !important; background: var(--border) !important; border-radius: 3px !important; overflow: hidden !important; }
+  .progress-fill { height: 100% !important; border-radius: 3px !important; transition: width 1s cubic-bezier(0.4,0,0.2,1) !important; }
+  .progress-fill.danger  { background: linear-gradient(90deg, var(--warning), var(--danger)) !important; }
+  .progress-fill.success { background: linear-gradient(90deg, var(--accent), var(--success)) !important; }
+  .alert-box { padding: 16px 20px !important; border-radius: 10px !important; font-size: 14px !important; display: flex !important; align-items: center !important; gap: 12px !important; margin-top: 16px !important; }
+  .alert-danger  { background: rgba(220,38,38,0.06) !important; border: 1px solid rgba(220,38,38,0.25) !important; color: #b91c1c !important; }
+  .alert-success { background: rgba(5,150,105,0.06) !important; border: 1px solid rgba(5,150,105,0.25) !important; color: #209489 !important; }
+  .chart-card { background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: 14px !important; padding: 24px !important; }
+  .chart-title { font-size: 25px !important; text-transform: uppercase !important; letter-spacing: 0.1em !important; color: #404040 !important; margin-bottom: 16px !important;text-align: center !important; }
+  #chartdiv { width: 100% !important; height: 280px !important; }
+
+  /* ── Advice cards ── */
+  .advice-grid { display: grid !important; grid-template-columns: repeat(3,1fr) !important; gap: 14px !important; margin-top: 16px !important; }
+  .advice-card { background: var(--surface2) !important; border: 1px solid var(--border) !important; border-radius: 12px !important; padding: 18px 20px !important; display: flex !important; flex-direction: column !important; gap: 10px !important; position: relative !important; overflow: hidden !important; }
+  .advice-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+  .advice-card.risk-high { border-color: rgba(239,68,68,0.25) !important; }
+  .advice-card.risk-high::before { background: linear-gradient(90deg, var(--danger), #f97316); }
+  .advice-card.risk-med  { border-color: rgba(245,158,11,0.25) !important; }
+  .advice-card.risk-med::before  { background: linear-gradient(90deg, var(--warning), #facc15); }
+  .advice-card.risk-low  { border-color: rgba(16,185,129,0.25) !important; }
+  .advice-card.risk-low::before  { background: linear-gradient(90deg, var(--success), #0891b2); }
+  .advice-rank { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+  .risk-high .advice-rank { color: var(--danger); }
+  .risk-med  .advice-rank { color: var(--warning); }
+  .risk-low  .advice-rank { color: var(--success); }
+  .advice-factor { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.3; }
+  .advice-action { font-size: 12px; color: var(--label); line-height: 1.6; }
+  .advice-tag { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: 600; text-transform: uppercase; align-self: flex-start; }
+  .risk-high .advice-tag { background: rgba(220,38,38,0.1); color: #b91c1c; }
+  .risk-med  .advice-tag { background: rgba(217,119,6,0.1);  color: #92400e; }
+  .risk-low  .advice-tag { background: rgba(5,150,105,0.1);  color: #065f46; }
+
+  /* ── Salary ── */
+  .salary-row { display: flex !important; flex-wrap: wrap !important; gap: 12px 16px !important; }
+  .salary-col-currency, .salary-col { width: calc(25% - 12px) !important; min-width: 160px !important; }
+  .stepper-wrap { display: flex !important; border: 1px solid var(--border) !important; border-radius: 8px !important; overflow: hidden !important; background: var(--surface) !important; }
+  .stepper-wrap input[type="number"] { flex: 1 !important; border: none !important; background: transparent !important; padding: 10px 12px !important; font-size: 13px !important; outline: none !important; -moz-appearance: textfield !important; }
+  .stepper-wrap input[type="number"]::-webkit-inner-spin-button,
+  .stepper-wrap input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .stepper-btn { width: 34px !important; border: none !important; border-left: 1px solid var(--border) !important; background: var(--surface2) !important; cursor: pointer !important; display: flex !important; align-items: center !important; justify-content: center !important; }
+  .salary-converted { font-size: 11px; color: var(--accent); font-family: 'DM Mono',monospace; margin-top: 4px; }
+  .divider { height: 1px; background: var(--border); margin: 8px 0 24px; }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .grid-4, .grid-5 { grid-template-columns: repeat(2,1fr) !important; }
+    .grid-3 { grid-template-columns: 1fr 1fr !important; }
+    .result-grid { grid-template-columns: 1fr !important; }
+    .advice-grid { grid-template-columns: repeat(2,1fr) !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper flex">
+  <header class="d-lg-none">
+    <nav class="d-flex space-between m-nav">
+      <div class="menu-title"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo"></div>
+      <ul class="d-inline-flex">
+        <li><a href="{{ url_for('dashboard') }}">特徵儀錶板</a></li>
+        <li><a href="{{ url_for('index') }}">離職風險預測</a></li>
+        <li><a href="{{ url_for('pl3') }}" class="current">個人輸入介面</a></li>
+      </ul>
+    </nav>
+  </header>
+  <aside>
+    <div class="menu-title"><img src="{{ url_for('static', filename='img/logo2.png') }}" alt="Logo"></div>
+    <ul>
+      <li><a href="{{ url_for('dashboard') }}">特徵儀錶板</a></li>
+      <li><a href="{{ url_for('index') }}">離職風險預測</a></li>
+      <li><a href="{{ url_for('pl3') }}" class="current">個人輸入介面</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main -->
+  <main>
+
+    <!-- Section 1: Basic Info -->
+  <div class="section">
+    <div class="section-title" style="display: flex; align-items: baseline;font-size: 10px; ">
+    <span class="material-symbols-outlined" style="font-size: 24px; align-items: center;color: #5f6368;">badge</span>
+      <span style="font-size: 18px; font-weight: 600; color: #404040;">
+    員工基本資料 
+    <span style="font-size: 14px; color: #666; font-weight: normal; margin-left: 6px;">BASIC INFORMATION</span>
+  </span>
+  </div>
+      <div class="grid-4">
+        <div class="field">
+          <div class="field-label">年齡 <span class="unit">(Age)</span></div>
+          <input type="range" id="age" min="18" max="60" value="35" oninput="syncVal('age','age_val')">
+          <div class="range-val" id="age_val">35 歲</div>
+        </div>
+        <div class="field">
+          <div class="field-label">是否單身 <span class="unit">(Single)</span></div>
+          <div class="radio-group" id="marital_group">
+            <div class="radio-btn selected" onclick="selectRadio('marital_group', this, '否')">否</div>
+            <div class="radio-btn" onclick="selectRadio('marital_group', this, '是')">是</div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">教育程度 <span class="unit">(Education)</span></div>
+          <select id="education">
+            <option value="1">1 - 高中/以下</option>
+            <option value="2">2 - 專科/學院</option>
+            <option value="3" selected>3 - 大學</option>
+            <option value="4">4 - 碩士</option>
+            <option value="5">5 - 博士</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="field-label">離家距離 <span class="unit">(km)</span></div>
+          <input type="range" id="distance" min="1" max="30" value="10" oninput="syncVal('distance','distance_val')">
+          <div class="range-val" id="distance_val">10 km</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Professional -->
+    <div class="section">
+    <div class="section-title" style="display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: 500;">
+    <span class="material-symbols-outlined">work</span>
+      <span style="font-size: 18px; font-weight: 600; color: #404040;">
+    專業、表現與平衡 
+    <span style="font-size: 14px; color: #666; font-weight: normal; margin-left: 6px;">Professional, Performance & Balance</span>
+    </div>
+      <div class="grid-4" style="margin-bottom:16px">
+        <div class="field">
+          <div class="field-label">專業領域 <span class="unit">(EducationField)</span></div>
+          <select id="edu_field">
+            <option>Human Resources</option>
+            <option>Life Sciences</option>
+            <option>Marketing</option>
+            <option>Medical</option>
+            <option>Other</option>
+            <option>Technical Degree</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="field-label">職級 <span class="unit">(JobLevel)</span></div>
+          <select id="job_level">
+            <option value="1">1 - 基層</option>
+            <option value="2">2 - 資深</option>
+            <option value="3">3 - 經理</option>
+            <option value="4">4 - 處長</option>
+            <option value="5">5 - 副總</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="field-label">期權等級 <span class="unit">(StockOptionLevel)</span></div>
+          <select id="stock_level">
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="field-label">出差頻率 <span class="unit">(BusinessTravel)</span></div>
+          <select id="travel">
+            <option>Non-Travel</option>
+            <option>Travel_Frequently</option>
+            <option>Travel_Rarely</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid-4">
+        <div class="field">
+          <div class="field-label">環境滿意度</div>
+          <input type="range" id="env_sat" min="1" max="4" value="3" oninput="syncVal('env_sat','env_sat_val')">
+          <div class="range-val" id="env_sat_val">3 / 4</div>
+        </div>
+        <div class="field">
+          <div class="field-label">工作滿意度</div>
+          <input type="range" id="job_sat" min="1" max="4" value="3" oninput="syncVal('job_sat','job_sat_val')">
+          <div class="range-val" id="job_sat_val">3 / 4</div>
+        </div>
+        <div class="field">
+          <div class="field-label">工作生活平衡</div>
+          <input type="range" id="wlb" min="1" max="4" value="3" oninput="syncVal('wlb','wlb_val')">
+          <div class="range-val" id="wlb_val">3 / 4</div>
+        </div>
+        <div class="field">
+          <div class="field-label">績效評比</div>
+          <input type="range" id="perf" min="1" max="4" value="3" oninput="syncVal('perf','perf_val')">
+          <div class="range-val" id="perf_val">3 / 4</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Tenure -->
+    <div class="section">
+    <div class="section-title" style="display: flex; align-items: center; gap: 12px; font-size: 16px !important; font-weight: 600; color: #333; margin-bottom: 20px;">
+    <span class="material-symbols-outlined">history</span>
+          <span style="font-size: 18px; font-weight: 600; color: #404040;">
+    狀態與年資 
+    <span style="font-size: 14px; color: #666; font-weight: normal; margin-left: 6px;">Employment Status & Tenure</span>
+    </div>
+      <div class="grid-5">
+        <div class="field">
+          <div class="field-label">總工作年資 <span class="unit">(TotalWorkingYears)</span></div>
+          <input type="range" id="total_years" min="0" max="40" value="10" oninput="syncVal('total_years','total_years_val')">
+          <div class="range-val" id="total_years_val">10 年</div>
+        </div>
+        <div class="field">
+          <div class="field-label">加班頻率 <span class="unit">(OverTime)</span></div>
+          <select id="overtime">
+            <option>沒有</option>
+            <option>有時</option>
+            <option>經常</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="field-label">在職年數 <span class="unit">(YearsAtCompany)</span></div>
+          <input type="range" id="years_company" min="0" max="40" value="5" oninput="syncVal('years_company','years_company_val')">
+          <div class="range-val" id="years_company_val">5 年</div>
+        </div>
+        <div class="field">
+          <div class="field-label">距上次升遷 <span class="unit">(YearsSinceLastPromotion)</span></div>
+          <input type="range" id="since_promo" min="0" max="15" value="1" oninput="syncVal('since_promo','since_promo_val')">
+          <div class="range-val" id="since_promo_val">1 年</div>
+        </div>
+        <div class="field">
+          <div class="field-label">與現任經理共事 <span class="unit">(YearsWithCurrManager)</span></div>
+          <input type="range" id="with_mgr" min="0" max="17" value="2" oninput="syncVal('with_mgr','with_mgr_val')">
+          <div class="range-val" id="with_mgr_val">2 年</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: Salary -->
+  <div class="section">
+  <div class="section-title" style="display: flex; align-items: center; gap: 12px; font-size: 16px !important; font-weight: 600; color: #333; margin-bottom: 20px;">
+    <span class="material-symbols-outlined" style="padding: 4px; border-radius: 8px;">payments</span>
+      <span style="font-size: 18px; font-weight: 600; color: #404040;">
+    薪酬資訊 
+    <span style="font-size: 14px; color: #666; font-weight: normal; margin-left: 6px;">Compensation & Benefits</span>
+    </div>
+
+      <!-- Horizontal row: currency dropdown + all salary fields -->
+      <div class="grid-5">
+
+        <!-- Currency Dropdown -->
+        <div class="field">
+          <div class="field-label">選擇輸入幣別：</div>
+          <div class="salary-select-wrap">
+            <select id="currency_select" onchange="setCurrencyFromSelect(this.value)">
+              <option value="USD">USD（美金）</option>
+              <option value="CNY">CNY（人民幣）</option>
+              <option value="TWD">TWD（台幣）</option>
+            </select>
+          </div>
+          <div class="salary-converted" id="rate_hint"></div>
+        </div>
+
+        <!-- Daily Rate -->
+        <div class="field">
+          <div class="field-label" id="label_daily">日薪(Daily Rate)：</div>
+          <div class="stepper-wrap">
+            <input type="number" id="daily_rate" value="800" min="1" oninput="updateConvHint('daily_rate','conv_daily')">
+            <button class="stepper-btn" onclick="stepField('daily_rate','conv_daily',-1)">−</button>
+            <button class="stepper-btn" onclick="stepField('daily_rate','conv_daily', 1)">+</button>
+          </div>
+          <div class="salary-converted" id="conv_daily"></div>
+        </div>
+
+        <!-- Hourly Rate -->
+        <div class="field">
+          <div class="field-label" id="label_hourly">時薪（HourlyRate）：</div>
+          <div class="stepper-wrap">
+            <input type="number" id="hourly_rate" value="100" min="1" oninput="updateConvHint('hourly_rate','conv_hourly')">
+            <button class="stepper-btn" onclick="stepField('hourly_rate','conv_hourly',-1)">−</button>
+            <button class="stepper-btn" onclick="stepField('hourly_rate','conv_hourly', 1)">+</button>
+          </div>
+          <div class="salary-converted" id="conv_hourly"></div>
+        </div>
+
+        <!-- Monthly Rate -->
+        <div class="field">
+          <div class="field-label" id="label_rate">月費率(Monthly Rate)：</div>
+          <div class="stepper-wrap">
+            <input type="number" id="monthly_rate" value="10000" min="1" oninput="updateConvHint('monthly_rate','conv_rate')">
+            <button class="stepper-btn" onclick="stepField('monthly_rate','conv_rate',-1)">−</button>
+            <button class="stepper-btn" onclick="stepField('monthly_rate','conv_rate', 1)">+</button>
+          </div>
+          <div class="salary-converted" id="conv_rate"></div>
+        </div>
+
+        <!-- Monthly Income -->
+        <div class="field">
+          <div class="field-label" id="label_income">月收入(Monthly Income)：</div>
+          <div class="stepper-wrap">
+            <input type="number" id="monthly_income" value="5000" min="1" oninput="updateConvHint('monthly_income','conv_income')">
+            <button class="stepper-btn" onclick="stepField('monthly_income','conv_income',-1)">−</button>
+            <button class="stepper-btn" onclick="stepField('monthly_income','conv_income', 1)">+</button>
+          </div>
+          <div class="salary-converted" id="conv_income"></div>
+        </div>
+
+      </div>
+    </div>
+<!-- 
+    <div class="divider"></div> -->
+
+  <div style="display: flex; justify-content: flex-end; margin-top: 20px; margin-bottom: 40px;">
+  <button class="btn-predict" onclick="runPrediction()">
+    <span class="material-symbols-outlined">play_arrow</span>
+    預測  Prediction
+  </button>
+  </div>
+
+    <div id="result-container" style="display: none; margin-bottom: 40px;">
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+
+    <!-- Results -->
+    <div id="result-panel" style="margin-top: 28px;">
+      <div class="result-grid">
+        <!-- Risk metric -->
+        <div class="metric-card" id="risk-card">
+          <div class="metric-label">離職風險機率</div>
+          <div class="metric-value danger" id="risk-pct">--</div>
+          <div class="progress-bar">
+            <div class="progress-fill danger" id="risk-bar" style="width:0%"></div>
+          </div>
+          <div id="alert-box" class="alert-box" style="display:none"></div>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-card">
+          <div class="chart-title">留任 vs 離職</div>
+          <div id="chartdiv"></div>
+        </div>
+      </div>
+      <div class="section-title" style="display: flex; align-items: center; gap: 10px;">
+  <span class="material-symbols-outlined" style="color: #058A60; font-size: 24px;">
+    lightbulb
+  </span>
+  
+  <span style="font-size: 18px; font-weight: 600; color: #404040;">
+    決策建議 
+    <span style="font-size: 14px; color: #666; font-weight: normal; margin-left: 6px;">Decision Support</span>
+  </span>
+  </div>
+
+  </main>
+</div>
+
+<script>
+// ─── Utility ───────────────────────────────────────────────────────────────
+function syncVal(id, outId) {
+  const v = document.getElementById(id).value;
+  const el = document.getElementById(outId);
+  if (id === 'age') el.textContent = v + ' 歲';
+  else if (id === 'distance') el.textContent = v + ' km';
+  else if (['total_years','years_company','since_promo','with_mgr'].includes(id)) el.textContent = v + ' 年';
+  else el.textContent = v + ' / 4';
+}
+
+function selectRadio(groupId, el, val) {
+  document.querySelectorAll(`#${groupId} .radio-btn`).forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  el.dataset.val = val;
+}
+
+function getRadio(groupId) {
+  const selected = document.querySelector(`#${groupId} .radio-btn.selected`);
+  return selected ? (selected.dataset.val || selected.textContent.trim()) : '否';
+}
+
+// ─── Currency Conversion ────────────────────────────────────────────────────
+// Rates: 1 USD = X local; model baseline is USD
+const FX = { USD: 1, CNY: 7.24, TWD: 32.5 };
+const SYMBOLS = { USD: '$', CNY: '¥', TWD: 'NT$' };
+const NAMES   = { USD: '美金 USD', CNY: '人民幣 CNY', TWD: '台幣 TWD' };
+let currentCurrency = 'USD';
+
+function setCurrencyFromSelect(cur) {
+  setCurrency(cur);
+}
+
+function setCurrency(cur) {
+  currentCurrency = cur;
+  // 更新 label 顯示幣別
+  const labelMap = {
+    daily_rate:     'label_daily',
+    monthly_income: 'label_income',
+    monthly_rate:   'label_rate',
+    hourly_rate:    'label_hourly',
+  };
+  const baseNames = {
+    daily_rate:     '日薪',
+    monthly_income: '月收入',
+    monthly_rate:   '月費率',
+    hourly_rate:    '時薪',
+  };
+  Object.entries(labelMap).forEach(([field, labelId]) => {
+    const el = document.getElementById(labelId);
+    if (el) el.textContent = `${baseNames[field]} (${cur})：`;
+  });
+  // 顯示換算提示
+  const rateStr = cur === 'USD' ? '' : `　1 USD = ${FX[cur]} ${cur}`;
+  const hint = document.getElementById('rate_hint');
+  if (hint) hint.textContent = cur === 'USD' ? '' : `以 ${NAMES[cur]} 輸入，送出自動換算為 USD${rateStr}`;
+  // 刷新換算提示
+  updateConvHint('daily_rate',    'conv_daily');
+  updateConvHint('monthly_income','conv_income');
+  updateConvHint('monthly_rate',  'conv_rate');
+  updateConvHint('hourly_rate',   'conv_hourly');
+}
+
+function updateConvHint(inputId, hintId) {
+  const val = parseFloat(document.getElementById(inputId).value) || 0;
+  const usd = val / FX[currentCurrency];
+  const hint = document.getElementById(hintId);
+  if (currentCurrency === 'USD') {
+    hint.textContent = '';
+  } else {
+    hint.textContent = `≈ USD ${usd.toFixed(0)}`;
+  }
+}
+
+// Attach live update listeners
+['daily_rate','monthly_income','monthly_rate'].forEach(id => {
+  const hintMap = { daily_rate:'conv_daily', monthly_income:'conv_income', monthly_rate:'conv_rate' };
+  document.getElementById(id).addEventListener('input', () => updateConvHint(id, hintMap[id]));
+});
+
+// Helper: get USD value from a salary field
+function stepField(inputId, hintId, delta) {
+  const el = document.getElementById(inputId);
+  const step = inputId === 'hourly_rate' ? 1 : inputId === 'daily_rate' ? 10 : 100;
+  el.value = Math.max(1, (parseFloat(el.value) || 0) + delta * step);
+  updateConvHint(inputId, hintId);
+}
+
+function getSalaryUSD(inputId) {
+  const raw = parseFloat(document.getElementById(inputId).value) || 0;
+  return raw / FX[currentCurrency];
+}
+
+
+// 本機開發：http://localhost:5000
+// 部署後：改為你的伺服器網址，例如 https://your-app.railway.app
+const API_URL = window.location.origin;
+
+// ─── amCharts instance ─────────────────────────────────────────────────────
+let amRoot = null;
+
+function renderChart(riskPct, stayPct) {
+  if (amRoot) { amRoot.dispose(); amRoot = null; }
+
+  amRoot = am5.Root.new("chartdiv");
+  amRoot.setThemes([am5themes_Animated.new(amRoot)]);
+
+  const chart = amRoot.container.children.push(
+    am5percent.PieChart.new(amRoot, {
+      startAngle: 180, endAngle: 360,
+      layout: amRoot.verticalLayout,
+      innerRadius: am5.percent(55)
+    })
+  );
+
+const series = chart.series.push(
+    am5percent.PieSeries.new(amRoot, {
+      startAngle: 180, endAngle: 360,
+      valueField: "value", 
+      categoryField: "category",
+      alignLabels: false,
+      fillField: "fill",
+      strokeField: "stroke",
+      // 確保懸浮提示框內容正確
+      tooltip: am5.Tooltip.new(amRoot, {
+        labelText: "{category}: {value.formatNumber('#.0')}%"
+      })
+    })
+  );
+
+  // 1. 直接隱藏外圍標籤
+  series.labels.template.set("forceHidden", true);
+  
+  // 2. 隱藏引導線 (確保完全乾淨)
+  series.ticks.template.set("forceHidden", true);
+
+  series.data.setAll([
+    { value: riskPct, category: "離職風險", fill: am5.color(0xFE6F50), stroke: am5.color(0xffffff) },
+    { value: stayPct, category: "留任意願", fill: am5.color(0x23A094), stroke: am5.color(0xffffff) }
+  ]);
+
+  series.appear(1000, 100);
+}
+
+// ─── Loading state helpers ──────────────────────────────────────────────────
+function setLoading(on) {
+  const btn = document.querySelector('.btn-predict');
+  btn.disabled = on;
+  btn.textContent = on ? '模型預測中...' : '分析已完成';
+  btn.style.opacity = on ? '0.7' : '1';
+}
+
+function showApiError(msg) {
+  const panel = document.getElementById('result-panel');
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <div class="alert-box alert-danger" style="margin-top:0; font-size:14px;">
+      ❌ <div><strong>API 連線失敗</strong><br>${msg}<br><br>
+      請確認後端已啟動：<code style="background:#1f2a40;padding:3px 8px;border-radius:4px;">uvicorn main:app --reload --port 8000</code></div>
+    </div>`;
+}
+
+// ─── Main prediction (async, calls FastAPI) ─────────────────────────────────
+async function runPrediction() {
+  const age         = parseInt(document.getElementById('age').value);
+  const distance    = parseInt(document.getElementById('distance').value);
+  const edu         = parseInt(document.getElementById('education').value);
+  const eduField    = document.getElementById('edu_field').value;
+  const jobLevel    = parseInt(document.getElementById('job_level').value);
+  const stockLevel  = parseInt(document.getElementById('stock_level').value);
+  const travel      = document.getElementById('travel').value;
+  const envSat      = parseInt(document.getElementById('env_sat').value);
+  const jobSat      = parseInt(document.getElementById('job_sat').value);
+  const wlb         = parseInt(document.getElementById('wlb').value);
+  const perf        = parseInt(document.getElementById('perf').value);
+  const totalYears  = parseInt(document.getElementById('total_years').value);
+  const overtime    = document.getElementById('overtime').value;
+  const yearsCompany = parseInt(document.getElementById('years_company').value);
+  const sincePromo  = parseInt(document.getElementById('since_promo').value);
+  const withMgr     = parseInt(document.getElementById('with_mgr').value);
+  const dailyRate   = getSalaryUSD('daily_rate');
+  const monthlyIncome = getSalaryUSD('monthly_income');
+  const monthlyRate = getSalaryUSD('monthly_rate');
+  const marital     = getRadio('marital_group');
+
+  // ── 呼叫 FastAPI ────────────────────────────────────────────────────────────
+  setLoading(true);
+  let result;
+  try {
+    const resp = await fetch(`${API_URL}/predict`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        age,
+        marital_single:          marital === '是',
+        education:               edu,
+        education_field:         eduField,
+        distance_from_home:      distance,
+        job_level:               jobLevel,
+        stock_option_level:      stockLevel,
+        business_travel:         travel,
+        env_satisfaction:        envSat,
+        job_satisfaction:        jobSat,
+        work_life_balance:       wlb,
+        performance_rating:      perf,
+        total_working_years:     totalYears,
+        overtime,
+        years_at_company:        yearsCompany,
+        years_since_promotion:   sincePromo,
+        years_with_curr_manager: withMgr,
+        daily_rate:              dailyRate,
+        monthly_income:          monthlyIncome,
+        monthly_rate:            monthlyRate,
+      })
+    });
+    if (!resp.ok) { const t = await resp.text(); throw new Error(`HTTP ${resp.status}: ${t}`); }
+    result = await resp.json();
+  } catch (err) {
+    setLoading(false);
+    showApiError(err.message);
+    return;
+  }
+  setLoading(false);
+
+  // ── API 回傳值 ──────────────────────────────────────────────────────────────
+  const { risk_percent: riskPct, stay_percent: stayPct, is_high_risk: isHighRisk, threshold, features: f } = result;
+
+  // 從 API 回傳的特徵值重建前端建議所需的變數
+  const incomePerWorkingYear = f.IncomePerWorkingYear;
+  const distOt               = f.Distance_Overtime_Interaction;
+  const careerMaturity       = f.Career_Maturity;
+  const careerStagnation     = f.Career_Stagnation;
+  const managerLoyalty       = f.Manager_Loyalty;
+  const relIncome            = f.Relative_Income;
+  const travelROI            = f.Travel_ROI;
+  const tenurebuf            = f.Tenure_Performance_Buffer;
+  const incomeBurnout        = f.Income_Burnout_Shock;
+
+  // 重建前端本地需要的衍生值（不影響模型，只用於建議文字）
+  const btMap   = {'Non-Travel': 0, 'Travel_Rarely': 1, 'Travel_Frequently': 2};
+  const btVal   = btMap[travel] ?? 0;
+  const otVal   = (overtime === '有時' || overtime === '經常') ? 1 : 0;
+  const burnout = (12 - (envSat + jobSat + wlb)) * (otVal + 1);
+  const container = document.getElementById('result-container');
+  container.style.display = 'block'; // 顯示整塊報告
+  // ── 顯示結果 UI ─────────────────────────────────────────────────────────────
+  // 重新渲染 result-panel（避免 showApiError 的覆蓋狀態）
+// ── 顯示結果 UI ─────────────────────────────────────────────────────────────
+const panel = document.getElementById('result-panel');
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <div class="result-grid">
+      <div class="metric-card" id="risk-card" 
+           style="text-align:center; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:20px !important; padding: 40px 20px !important;">
+        <div class="metric-label" style="font-size: 25px !important; color:#888; letter-spacing: 4px; margin-bottom: 30px !important;">離職風險機率  </div>        
+        <div class="metric-value" id="risk-pct" 
+             style="color:${isHighRisk ? '#e74c3c' : '#23A094'}; 
+                    font-size:60px; 
+                    line-height: 1.5 !important; 
+                    letter-spacing: 5px !important; 
+                    font-weight: 900;
+                    font-family: 'DM Mono', monospace;">
+          ${riskPct}%
+        </div>        
+        <span class="label" 
+              style="display: flex; align-items: center; justify-content: center; gap: 8px;
+                     color:${isHighRisk ? '#FE6F50' : '#23A094'}; 
+                     font-size:16px; 
+                     padding: 12px 20px !important; 
+                     border-radius: 8px;
+                     letter-spacing: 1px !important; 
+                     font-weight:500;
+                     margin-top: 10px !important;">
+          <span class="material-symbols-outlined" style="font-size: 20px;">
+            ${isHighRisk ? 'warning' : 'check_circle'}
+          </span>
+          ${isHighRisk ? '高風險：有明顯離職傾向' : '留任意願穩定：目前狀態良好'}
+        </span>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title" style="font-size: 25px !important; font-weight: 400; margin-bottom: 0px;">離職 vs 留任</div>
+        <div id="chartdiv"></div>
+      </div>
+    </div>
+    <div class="section" style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #e0e0e0;">
+      <div class="section-title" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+        <span class="material-symbols-outlined" style="color: #404040; font-size: 24px;">lightbulb</span>
+        <span style="font-size: 20px; font-weight: 500; color: #404040;">
+            決策建議 
+            <span style="font-size: 14px; color: #666; font-weight: normal; margin-left: 8px;">Decision Support</span>
+        </span>
+      </div>
+      <div class="advice-grid" id="features-grid"></div>
+    </div>`;
+
+  document.getElementById('result-panel').style.display = 'block';
+
+  setTimeout(() => {
+    const bar = document.getElementById('risk-bar');
+    if (bar) bar.style.width = riskPct + '%';
+  }, 50);
+
+  renderChart(riskPct, stayPct);
+
+  // ── Top-3 Risk Factor Decision Advice ──────────────────────────────────────
+  // 預計算輔助變數
+  const incomeGapPct   = Math.round(Math.max(0, 1 - relIncome) * 100);
+  const incomeMatchPct = Math.round(relIncome * 100);
+  const travelLabel    = travel === 'Travel_Frequently' ? '非常頻繁' : travel === 'Travel_Rarely' ? '偶爾' : '不出差';
+  const ageGroup       = age < 30 ? '新生代' : age < 45 ? '中堅世代' : '資深世代';
+
+  const adviceRules = [
+    // ── 薪酬與激勵 ─────────────────────────────────────────────────────────
+    {
+      key: 'MonthlyIncome',
+      label: '薪酬落差',
+      tag: '薪酬與激勵',
+      score: Math.max(0, 1 - monthlyIncome / 8000),
+      advice: monthlyIncome < 5000
+        ? `月收入 ${monthlyIncome.toLocaleString()} 元，低於多數同業水準。建議立即進行市場薪資對標，並啟動薪資調整評估。`
+        : `月收入尚在合理區間，建議定期對標外部市場，確保薪資不落後競爭對手。`
+    },
+    {
+      key: 'Relative_Income',
+      label: '薪資競爭力',
+      tag: '薪酬與激勵',
+      score: Math.max(0, 1 - relIncome),
+      advice: relIncome < 0.85
+        ? `月收入低於同職級市場中位數約 ${incomeGapPct}%。建議檢視職級薪資寬幅，優先在下次薪資週期補足差距，或以績效獎金橋接。`
+        : `薪資達同職級市場中位數 ${incomeMatchPct}%，競爭力尚可。建議搭配非貨幣福利（彈性假、健康津貼）強化整體吸引力。`
+    },
+    {
+      key: 'IncomePerWorkingYear',
+      label: '產出回報比',
+      tag: '薪酬與激勵',
+      score: Math.min(1, Math.max(0, (totalYears > 5 && incomePerWorkingYear < 600) ? 0.7 : 0.2)),
+      advice: incomePerWorkingYear < 600 && totalYears > 5
+        ? `總年資 ${totalYears} 年，但薪資/年資比偏低（${incomePerWorkingYear.toFixed(0)} 元/年）。員工專業積累未獲充分回報，建議檢視獎酬回報比並提供階梯式加薪方案。`
+        : `薪資與年資的換算比例合理，建議持續追蹤績效產出，確保回報與貢獻相符。`
+    },
+    {
+      key: 'Income_Burnout_Shock',
+      label: '薪資邊際遞減',
+      tag: '薪酬與激勵',
+      score: Math.min(1, Math.max(0, burnout > 6 && incomeBurnout < 1 ? 0.8 : 0.15)),
+      advice: burnout > 6 && incomeBurnout < 1
+        ? `加薪已無法有效抵銷勞動強度帶來的倦怠。建議優先從「減量」著手：縮短工時、重新分案，而非僅依賴金錢獎勵。`
+        : `薪資激勵效果仍在有效範圍內，定期檢視壓力指數，避免倦怠導致薪資邊際效益下滑。`
+    },
+    // ── 股權激勵 ───────────────────────────────────────────────────────────
+    {
+      key: 'StockOptionLevel',
+      label: '長期激勵綁定',
+      tag: '股權激勵',
+      score: stockLevel === 0 ? 0.75 : stockLevel === 1 ? 0.4 : 0.1,
+      advice: stockLevel === 0
+        ? `目前無任何期權參與，缺乏長期留任誘因（金手銬）。建議盡速納入股票選擇權計畫，設定 3～4 年歸屬期以提高離職成本。`
+        : stockLevel === 1
+        ? `期權等級偏低，對長期留任的約束力有限。建議依績效表現提升授予額度，強化股權連結感。`
+        : `股權激勵配置合理，建議於歸屬期屆滿前主動啟動續約談判，避免歸屬後立即離職。`
+    },
+    // ── 職涯與晉升 ─────────────────────────────────────────────────────────
+    {
+      key: 'Career_Stagnation',
+      label: '職涯晉升停滯',
+      tag: '職涯發展',
+      score: Math.min(1, careerStagnation * 1.2),
+      advice: careerStagnation > 0.5
+        ? `距上次升遷已達 ${sincePromo} 年，在職 ${yearsCompany} 年間停滯感明顯。建議主管於 30 天內啟動職涯面談，提供明確的晉升路徑或職責擴展方案。`
+        : `晉升節奏尚可，建議持續提供跨部門專案或導師機會，維持成長動能，預防停滯感累積。`
+    },
+    {
+      key: 'Career_Maturity',
+      label: '職能與年齡適配',
+      tag: '職涯發展',
+      score: Math.min(1, Math.max(0, careerMaturity > 0.8 ? 0.6 : careerMaturity < 0.3 ? 0.65 : 0.2)),
+      advice: careerMaturity > 0.8
+        ? `年資積累速度超前年齡曲線，員工可能感到職涯天花板。建議提供橫向輪調、專案型晉升或導師職位，拓展發展空間。`
+        : careerMaturity < 0.3
+        ? `年資相對年齡偏低，可能為轉職頻繁或資歷尚淺。建議評估崗位適配度，給予具挑戰性的任務以加速成長。`
+        : `職涯成熟度正常，建議持續追蹤發展進度，每半年進行一次職能評估。`
+    },
+    // ── 工作負荷與環境 ─────────────────────────────────────────────────────
+    {
+      key: 'Overtime',
+      label: '工時超載',
+      tag: '工作負荷',
+      score: overtime === '經常' ? 0.9 : overtime === '有時' ? 0.5 : 0.05,
+      advice: overtime === '經常'
+        ? `加班頻率為「經常」，長期高工時是離職的強預測因子。建議立即盤點工作量分配，評估是否需要增補人力或重新定義工作範疇。`
+        : overtime === '有時'
+        ? `偶有加班，目前尚在可接受範圍。建議建立加班追蹤機制，避免「偶爾」逐漸演變為常態。`
+        : `工時負荷正常，維持現有制度即可，持續確保員工有足夠的非工作時間恢復精力。`
+    },
+    {
+      key: 'Burnout_Index',
+      label: '高壓倦怠風險',
+      tag: '身心健康',
+      score: Math.min(1, burnout / 12),
+      advice: burnout > 8
+        ? `倦怠指數極高（環境/工作滿意度低 + 高加班）。建議啟動 EAP 員工協助方案，安排強制排休，並由 HR 進行緊急關懷面談。`
+        : burnout > 4
+        ? `中度倦怠訊號。建議主管增加非正式關懷互動，提供心理健康資源，並重新審視工作量分配。`
+        : `倦怠風險低，持續維持良好的工作滿意度，定期進行匿名問卷追蹤即可。`
+    },
+    {
+      key: 'Distance_Overtime_Interaction',
+      label: '通勤加班複合壓力',
+      tag: '工作條件',
+      score: Math.min(1, distOt / 25),
+      advice: distOt > 15
+        ? `遠距通勤（${distance} km）加上頻繁加班，每日時間損耗極高。建議優先導入混合辦公制度或提供交通津貼，降低實質生活成本。`
+        : distOt > 5
+        ? `通勤與加班存在一定複合壓力。建議提供彈性上下班時間，讓員工自主安排，減少通勤尖峰時段的消耗。`
+        : `通勤加班壓力低，維持現狀並定期確認員工對工作時間安排的滿意度即可。`
+    },
+    // ── 管理與組織 ─────────────────────────────────────────────────────────
+    {
+      key: 'Manager_Loyalty',
+      label: '主管關係穩定性',
+      tag: '管理與組織',
+      score: Math.max(0, 1 - managerLoyalty * 1.5),
+      advice: managerLoyalty < 0.25
+        ? `與現任主管共事僅 ${withMgr} 年，信任基礎薄弱。建議主管每月安排結構化 1-on-1，並評估是否存在管理風格衝突，必要時考慮跨部門轉崗。`
+        : managerLoyalty < 0.5
+        ? `主管關係尚在建立階段。建議增加非正式互動機會，透過共同專案加深默契與信任感。`
+        : `與主管共事關係穩定，有助於留任。建議給予員工更多自主決策空間，延續正向的管理關係。`
+    },
+    {
+      key: 'Tenure_Performance_Buffer',
+      label: '核心人才防禦',
+      tag: '管理與組織',
+      score: Math.min(1, Math.max(0, yearsCompany >= 3 && perf >= 3 ? 0.7 : 0.2)),
+      advice: yearsCompany >= 3 && perf >= 3
+        ? `高年資＋高績效員工，屬核心人才，一旦離職替補成本極高。建議優先配置留才資源：個人化股權方案、關鍵任務參與、晉升優先通道。`
+        : `員工價值仍在累積階段，建議建立清晰的績效成長路徑，提升其對組織的依附感與認同感。`
+    },
+    // ── 其他 ───────────────────────────────────────────────────────────────
+    {
+      key: 'Travel_ROI',
+      label: '差旅疲勞回報比',
+      tag: '工作條件',
+      score: btVal >= 2 && travelROI < 0.6 ? 0.7 : btVal >= 1 && travelROI < 0.4 ? 0.5 : 0.1,
+      advice: btVal >= 2 && travelROI < 0.6
+        ? `出差頻率高（${travelLabel}）但薪資回報比偏低，差旅疲勞未獲相應補償。建議優化差旅政策：增加差旅津貼、減少非必要出行，或提供出差後補休機制。`
+        : btVal >= 1
+        ? `偶有出差，目前尚在可接受範圍。建議定期確認員工對出差安排的意願與滿意度。`
+        : `無出差負擔，此面向無需特別介入。`
+    },
+    {
+      key: 'Education_ROI',
+      label: '學歷崗位適配',
+      tag: '職涯發展',
+      score: edu >= 4 && jobLevel <= 2 ? 0.65 : 0.1,
+      advice: edu >= 4 && jobLevel <= 2
+        ? `高學歷（${edu === 5 ? '博士' : '碩士'}）配置於基層/資深職級，可能存在人才錯置感。建議檢視崗位挑戰度，提供研究型、策略型或跨部門專案任務，強化成就感。`
+        : `學歷與職級的適配度尚可，持續關注員工對崗位挑戰性的主觀感受即可。`
+    },
+    {
+      key: 'Age',
+      label: '世代需求差異',
+      tag: '組織文化',
+      score: (age < 28 || age > 52) ? 0.45 : 0.1,
+      advice: age < 28
+        ? `新生代員工（${age} 歲）重視即時回饋、職涯加速與工作意義感。建議提供清晰的 6 個月成長目標、導師配對，並允許嘗試不同職能角色。`
+        : age > 52
+        ? `資深員工（${age} 歲）可能面臨接班壓力或角色邊緣化疑慮。建議討論知識傳承計畫，提供顧問型職位或導師角色，維持其組織價值感。`
+        : `${ageGroup}員工（${age} 歲），職涯需求相對穩定。建議持續提供成長機會與認可機制，維持高度投入感。`
+    }
+  ];
+
+  // Sort by score desc, take top 3
+  adviceRules.sort((a, b) => b.score - a.score);
+  const top3 = adviceRules.slice(0, 3);
+
+  const rankLabels = ['1. 最高風險', '2. 次要風險', '3. 注意觀察'];
+  const rankClasses = ['risk-high', 'risk-med', 'risk-low'];
+
+  const grid = document.getElementById('features-grid');
+  grid.innerHTML = top3.map((item, i) => `
+    <div class="advice-card ${rankClasses[i]}">
+      <div class="advice-rank">${rankLabels[i]}</div>
+      <div class="advice-tag">${item.tag}</div>
+      <div class="advice-factor">${item.label}</div>
+      <div class="advice-action">${item.advice}</div>
+    </div>
+  `).join('');
+
+  // document.getElementById('result-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('result-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>

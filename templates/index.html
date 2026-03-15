@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>離職風險預測-HR Radar</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+     <link href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@200..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+    <style>
+        /* ── Drawer ─────────────────────────────── */
+        /* style.css 範例 */
+        .badge-high,.btn-risk{ 
+            background-color: #fff;
+            color: #212529;
+            padding: 4px 8px;
+            border-radius: 11px;
+            border: 1px solid #666;
+         }
+        .badge-medium{ background-color: #faad14; color: white; padding: 4px 8px; border-radius: 4px; }
+        .badge-low,.btn-stable{ color: #666;  }
+        .bar-high { background-color: #FE6F50;  }
+        .bar-medium { background-color: #faad14; }
+        .bar-low { background-color: #23A094; }
+        #drawer-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,.45);
+            z-index: 900;
+        }
+        #drawer {
+            position: fixed; top: 0; right: -480px;
+            width: 460px; height: 100vh;
+            background: #F4F4F0;
+            box-shadow: -4px 0 24px rgba(0,0,0,.15);
+            z-index: 901;
+            transition: right .3s ease;
+            overflow-y: auto;
+            padding: 28px 28px 40px;
+            box-sizing: border-box;
+        }
+        #drawer.open { right: 0; }
+        .drawer-close {
+            position: absolute; top: 16px; right: 20px;
+            font-size: 22px; cursor: pointer; color: #666;
+            background: none; border: none;
+        }
+        .drawer-section { margin-bottom: 20px; }
+        .drawer-section h4 {
+            font-size: 13px; font-weight: 700;
+            color: #555; text-transform: uppercase;
+            letter-spacing: .06em; margin: 0 0 10px;
+        }
+        .info-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .info-item {
+            background: #ffffff; border-radius: 8px;
+            padding: 10px 14px;    border: 1px solid #c5c5c5;
+        }
+        .info-item .label { font-size: 11px; color: #666; }
+        .info-item .value { font-size: 15px; font-weight: 600; color: #222; margin-top: 2px; }
+        .rule-tag {
+            display: inline-block;
+               background: #ffffff;
+            color: #212529;
+            border: 1px solid #aaa;
+            border-radius: 20px; padding: 4px 12px;
+            font-size: 12px; font-weight: 600; margin: 4px 4px 0 0;
+        }
+        .rule-tag.rule-high { background: #fde8e8; color: #c0392b; border-color: #e74c3c; }
+       
+        /* 快捷情境按鈕 */
+        .wi-preset-btn {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 5px 12px; border-radius: 7px; font-size: 12px;
+            font-weight: 600; cursor: pointer;
+            border: 1px solid #ccc; background: #fff; color: #444;
+            transition: all .15s;
+        }
+        .wi-preset-btn:hover { background: #edfaf8; color: #23A094; border-color: #23A094; }
+        .wi-reset-btn { color: #999; }
+        .wi-reset-btn:hover { background: #f5f5f5; color: #333; border-color: #aaa; }
+        .whatif-row .val-badge {
+                flex: 0 0 42px;
+                text-align: center;
+                background: #ffffff;
+                border-radius: 6px;
+                padding: 2px 6px;
+                font-size: 13px;
+                font-weight: 700;
+                color: #212529;
+                    border: 1px solid #e5e5e5;;
+        }
+        #whatif-result {
+            margin-top: 14px; padding: 14px 16px;
+            border-radius: 10px; font-size: 14px; line-height: 1.6;
+            display: none;
+        }
+        #whatif-result.positive { background: #e8f5e9; color: #1b5e20; border: 1px solid #a5d6a7; }
+        #whatif-result.negative { background: #fdecea; color: #b71c1c; border: 1px solid #ef9a9a; }
+        #whatif-result.neutral  { background: #f5f5f5; color: #333; border: 1px solid #ddd; }
+        .table-wrapper{overflow-x: scroll;}
+        .prob-bar-wrap { background: #eee; border-radius: 8px; height: 10px; margin-top: 6px; overflow: hidden; }
+        .prob-bar { height: 10px; border-radius: 8px; transition: width .4s; }
+    </style>
+</head>
+<body>
+    <div class="wrapper flex">
+         <header class="d-lg-none ">
+        <nav class="d-flex space-between m-nav">
+            <div class="menu-title"><img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo"></div>
+            <ul class="d-inline-flex">
+            <li><a href="{{ url_for('dashboard') }}">特徵儀錶板</a></li>
+                <li><a href="{{ url_for('index') }}"  class="current">離職風險預測</a></li>
+                <li><a href="{{ url_for('pl3') }}"  >個人輸入介面</a></li>
+                <!-- <li><a href="">智慧徵才系統</a></li> -->
+            </ul>
+        </nav>
+    </header>
+    <aside>
+        <div class="menu-title"><img src="{{ url_for('static', filename='img/logo2.png') }}" alt="Logo"></div>
+        <ul class="">
+           <li><a href="{{ url_for('dashboard') }}">特徵儀錶板</a></li>
+            <li><a href="{{ url_for('index') }}"  class="current">離職風險預測</a></li>
+            <li><a href="{{ url_for('pl3') }}"  >個人輸入介面</a></li>
+            <!-- <li><a href="">智慧徵才系統</a></li> -->
+        </ul>
+    </aside>
+  <main>
+       
+        <div class="row">
+             <div class="summary-item ">
+        <div class="text-center row">
+            <div class="col-sm-3">
+                <div class="card">
+                    <div class="c-title">Model</div>
+                    <div class="c-num" id="ModelAUC_num">XGBoost</div>
+                    <span class="label ">門檻:0.5352</span>
+                </div>
+            </div>
+                            <div class="col-sm-3">
+                <div class="card">
+                    <div class="c-title">Precision</div>
+                    <div class="c-num" id="ModelAUC_num">0.84</div>
+                    <span class="label ">精確率高，減少誤報</span>
+                </div>
+            </div>
+            <div class=" col-sm-3">
+                <div class="card">
+                    <div class="c-title">Recall</div>
+                    <div class="c-num" id="Recall_num">0.76</div>
+                    <span class="label ">召回率高，減少漏報</span>
+                </div>
+            </div>
+             <div class="col-sm-3">
+                <div class="card">
+
+                    <div class="c-title">F1 Score</div>
+                     <div class="c-num" id="Recall_num">0.61</div>
+                    <span class="label ">調和平均數</span>
+                   
+
+                </div>
+            </div>
+        </div>
+              
+            </div>
+    <div class="col-12">
+    <div class="row align-items-stretch mb-3">
+            <div class="col-xl-6">
+                <div class="card text-center h-100">
+                     <div id="result-summary" class="summary-card">
+            <div class="summary-item">
+
+                <div id="chartdiv" style="width:100%;height:320px;"></div>
+            </div>
+                <p id="overallSuggestion" class="c-title">AI 分析中...</p>
+                <div class="summary-stats d-none">
+                    <div class="stat-box risk-high">
+                        <label>高風險人數</label>
+                        <span id="count-high">0</span>
+                    </div>
+                    <div class="stat-box risk-medium">
+                        <label>中風險人數</label>
+                        <span id="count-medium">0</span>
+                    </div>
+                    <div class="stat-box risk-low">
+                        <label>低風險人數</label>
+                        <span id="count-low">0</span>
+                    </div>
+                </div>
+
+                </div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="card h-100">
+            <div id="deptRiskChart" style="width:100%;height:320px;"></div>
+        </div>
+    </div>
+    </div>
+    </div>
+   
+    <div class="col-12">
+          <div class="card">
+             <h3 class="c-title" style="color: #222;"><i class="bi bi-people-fill"></i> 員工風險清單</h3>
+             
+            <div class="filter-section d-flex mb-2">
+                <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="搜尋員工 ID / 部門 / 職位..." class="form-control">
+                 <select id="leaveFilter" onchange="filterTable()" class="form-select">
+                    <option value="all">所有員工</option>
+                    <option value="no">在職</option>
+                    <option value="yes">離職</option>
+                </select>
+                <select id="riskFilter" onchange="filterTable()" class="form-select">
+                    <option value="all">所有風險等級</option>
+                    <option value="high">高風險 (&gt;70%)</option>
+                    <option value="medium">中風險 (70–40%)</option>
+                    <option value="low">低風險 (&lt;25%)</option>
+                </select>
+                <select id="deptFilter" onchange="filterTable()" class="form-select">
+                    <option value="all">所有部門</option>
+                </select>
+                 <select id="lvlFilter" onchange="filterTable()" class="form-select">
+                    <option value="all">所有職等</option>
+                    <option value="1">Level 1</option>
+                    <option value="2">Level 2</option>
+                    <option value="3">Level 3</option>
+                    <option value="4">Level 4</option>
+                    <option value="5">Level 5</option>
+                </select>
+            </div>
+            <!-- 快速條件篩選（勾選） -->
+        <div class="chip-filter-bar mb-2 count-bar" id="chipFilterBar">
+            <span class="chip-filter-label"> 快速篩選</span>
+            <label class="chip-check">
+                <input type="checkbox" id="chk_ot" onchange="filterTable()">
+                <span><i class="bi bi-lightning-charge-fill"></i> 加班中</span>
+            </label>
+            <label class="chip-check">
+                <input type="checkbox" id="chk_new" onchange="filterTable()">
+                <span><i class="bi bi-person-fill-add"></i> 入職 &lt;1年</span>
+            </label>
+            <label class="chip-check">
+                <input type="checkbox" id="chk_dist" onchange="filterTable()">
+                <span><i class="bi bi-geo-alt-fill"></i> 遠距通勤 (&gt;15km)</span>
+            </label>
+            <label class="chip-check">
+                <input type="checkbox" id="chk_sat" onchange="filterTable()">
+                <span><i class="bi bi-emoji-frown-fill"></i> 滿意度低</span>
+            </label>
+        </div>
+        <div class="count-bar mb-3">
+        <span class="chip-filter-label">篩選結果</span>
+        <span class="total-num" id="filter-count-total">1470</span>
+        <span>人</span>
+        <span class="sep">|</span>
+        <span class="cpill h"> 高風險 </span><span class="n" id="filter-count-high">142</span>
+        <span class="cpill m"> 中風險 </span><span class="n" id="filter-count-medium">465</span>
+        <span class="cpill l"> 低風險 </span><span class="n" id="filter-count-low">863</span>
+      </div>
+            <div class="table-wrapper">
+                <table class="styled-table table" style="min-width: 1200px;">
+                    <thead >
+                        <tr>
+                            <th>員工ID</th>
+                            <th>離職機率</th>
+                            <th>風險等級</th>
+                            <th>部門-職位</th>
+                            <th>職等</th>
+                            <th>年齡</th>
+                            <th>年資</th>
+                            <th class='d-none'>月收入</th>
+                            <th>加班</th>
+                            <th class='d-none'>婚姻</th>
+                            <th class='d-none'>離家(km)</th>
+                            <th>決策建議</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr><td colspan="12" class="placeholder">載入中...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+        </div>
+        
+
+      
+    </main>
+    </div>
+  
+
+         </div>
+
+        
+
+    <!-- ── 側邊抽屜 ── -->
+    <div id="drawer-overlay" onclick="closeDrawer()"></div>
+    <div id="drawer">
+        <button class="drawer-close" onclick="closeDrawer()">✕</button>
+        <div id="drawer-content"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+</body>
+</html>

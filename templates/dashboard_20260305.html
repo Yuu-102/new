@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>HR Radar</title>
+    <link rel="icon" type="image/png" href="../static/img/favicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link href="../static/style.css" rel="stylesheet">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@200..900&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
+            <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+
+    <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+
+
+
+    <style>
+        #chartdiv_RH{height: 100vh;}
+        #chartContribution{height: 600px;}
+        #income {
+            width: 100%;
+            height: 500px;
+        }
+
+        #chartdiv_Satisfaction{
+            width: 100%;
+            height: 350px;
+        }
+
+        #chartdiv_Dept_overtime,
+        #chart_Aged_Joblvl,
+        #chart_dept_Heat,.h-350 {
+            height: 350px;
+        }
+
+        #Dept_overtime svg {
+            aspect-ratio: 1/1;
+        }
+
+        #people_dpet2,#people_dpet3,
+        #people_dpet {
+            height: 120px;
+        }
+
+        #chart_Aged_Joblvl_stay,
+        #chart_Aged_Joblvl_leave,
+        #chartdiv_Salary_distribution {
+            height: 350px;
+        }
+
+        #chartdiv3 {
+            width: 100%;
+            height: 500px;
+        }
+
+        .card h2 {
+            text-align: center;
+        }
+        .h-300{height: 290px;}
+    </style>
+</head>
+
+<div class="wrapper flex">
+    <header class="d-lg-none">
+        <nav class="d-flex space-between">
+            <div class="menu-title"><img src="../static/img/logo.png"></div>
+            <ul class="d-inline-flex">
+             <li><a href="{{ url_for('dashboard') }} " class="current">特徵儀錶板</a></li>
+            <li><a href="{{ url_for('index') }}"  >離職風險預測</a></li>
+            <li><a href="{{ url_for('pl3') }}"  >個人輸入介面</a></li>
+                <!-- <li><a href="">智慧徵才系統</a></li> -->
+            </ul>
+        </nav>
+    </header>
+    <aside>
+        <div class="menu-title"><img src="../static/img/logo2.png"></div>
+        <ul class="">
+            <li><a href="{{ url_for('dashboard') }} " class="current">特徵儀錶板</a></li>
+            <li><a href="{{ url_for('index') }}"  >離職風險預測</a></li>
+            <li><a href="{{ url_for('pl3') }}"  >個人輸入介面</a></li>
+            <!-- <li><a href="">智慧徵才系統</a></li> -->
+        </ul>
+    </aside>
+    <main>
+        <div class="row">
+            <div class="col-xl-4 col-lg-6 col-md-12">
+                <div class="card">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="c-title">總人數</div>
+                            <div class="c-num">1470</div>
+                        </div>
+                        <div class="col-6">
+                            <div id="people_dpet3"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+             <div class="col-xl-4 col-lg-6 col-md-12">
+                <div class="card">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="c-title">離職率</div>
+                            <div class="c-num ">16.1%</div>
+                           
+                        </div>
+                        <div class="col-6">
+                            <div id="people_dpet"></div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+            <div class="col-xl-4 col-lg-6 col-md-12">
+                <div class="card">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="c-title">加班</div>
+                            <div class="c-num ">23.4%</div>
+                        </div>
+                        <div class="col-6">
+                            <div id="people_dpet2"></div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+       
+             <div class="col-xl-6 col-lg-12">
+                <div class="card">
+                    <div class="c-title">在職vs離職人員薪資分佈</div>
+                    <div id="chartdiv_Salary_distribution"></div>
+
+                </div>
+            </div>
+            
+            <div class="col-xl-6 col-lg-12 d-none">
+                <div class="card">
+                    <div class="c-title">
+                        <div class="nav nav-tabs " id="nav-tab" role="tablist">
+                            <button class="nav-link active" id="tab-stay" data-bs-toggle="tab"
+                                data-bs-target="#pane-stay" type="button" role="tab" aria-selected="true">
+                                在職-各部門加班比例
+                            </button>
+                            <button class="nav-link" id="tab-leave" data-bs-toggle="tab"
+                                data-bs-target="#pane-leave" type="button" role="tab" aria-selected="false">
+                                離職-各部門加班比例
+                            </button>
+                        </div>
+                    </div>
+                    <nav>
+
+                    </nav>
+                    <div class="tab-content h-350" id="nav-tabContent">
+                        <div class="tab-pane fade show active" id="pane-stay" role="tabpanel"
+                            aria-labelledby="tab-stay">
+                            <div class="row">
+
+                                <div class="col-sm-4 position-relative">
+                                    <div id="chartdiv_Dept_overtime_RD" class="w-100 h-300"></div>
+                                    <div class="text-center">研發部RD </div>
+                                </div>
+
+                                <div class="col-sm-4 position-relative">
+                                    <div id="chartdiv_Dept_overtime_S" class="w-100 h-300"></div>
+                                    <div class="text-center">銷售部Sales </div>
+                                </div>
+
+                                <div class="col-sm-4 position-relative">
+                                    <div id="chartdiv_Dept_overtime_HR" class="w-100 h-300"></div>
+                                    <div class="text-center">人資部HR </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="pane-leave" role="tabpanel" aria-labelledby="tab-leave">
+                            <div class="row">   
+                                <div class="col-sm-4 position-relative">
+                                    <div id="chartdiv_Dept_overtime_RD_leave" class="w-100 h-300"></div>
+                                    <div class="text-center">研發部RD </div>
+                                </div>
+
+                                <div class="col-sm-4 position-relative">
+                                    <div id="chartdiv_Dept_overtime_S_leave" class="w-100 h-300"></div>
+                                    <div class="text-center">銷售部Sales </div>
+                                </div>
+
+                                <div class="col-sm-4 position-relative">
+                                    <div id="chartdiv_Dept_overtime_HR_leave" class="w-100 h-300"></div>
+                                    <div class="text-center">人資部HR </div>
+                                </div>
+
+                        </div>
+                    </div>
+                 </div>
+                </div>
+            </div>
+            <div class="col-xl-6 col-lg-12">
+                <div class="card">
+                    <div class="c-title">部門流失熱力圖</div>
+                    <div id="chart_dept_Heat" height="350"></div>
+                </div>
+            </div>
+            <div class="col-xl-6 col-lg-12">
+                <div class="card">
+                    <div class="c-title">
+                        在職vs離職人員年齡層
+                    </div>
+                     <div id="chartdiv_AgePyramid" class="w-100 h-350"></div>
+                </div>
+            </div>
+           
+            <div class="col-xl-6 col-lg-12 d-none">
+                <div class="card">
+                    <div class="c-title">
+                        年齡層與職等
+                        <div class="d-inline-flex">
+                            <span class="btn btn-dark rounded-pill px-3 chart-btn" data-target="stay"
+                                id="Aged_Joblvl_stay">在職</span>
+                            <span class="btn btn-outline-dark rounded-pill px-3 chart-btn ms-2" data-target="leave"
+                                id="Aged_Joblvl_leave">離職</span>
+                        </div>
+
+                    </div>
+
+                    <div id="chart_Aged_Joblvl_stay" class="chart-container"></div>
+                    <div id="chart_Aged_Joblvl_leave" class="chart-container d-none"></div>
+                </div>
+            </div>
+           
+            <div class="col-xl-6 col-lg-12">
+                <div class="card">
+                    <div class="c-title">整體滿意度平均:2.7</div>
+                    <div id="chartdiv_Satisfaction"></div>
+                </div>
+            </div>
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="c-title">特徵貢獻度</div>
+                    <div id="chartContribution"></div>
+                </div>
+            </div>
+             <div class="col-md-12 ">
+                <div class="card">
+                    <div class="c-title">特徵關係熱力圖</div>
+                      <div id="chartdiv_RH"></div>
+                </div>
+            </div>
+
+        </div>
+
+
+    </main>
+
+
+</div>
+<!-- <script src="/static/script.js"></script> -->
+<script src="js/amchartsFunc.js"></script>
+<script>
+    //color
+    var Green = '#23A094', Orange = '#FE6F50', Yellow = '#FFC900', Brown = '#98282A';
+    var Blue = '#90A8ED', Pink = '#FF90E8', Gray = '#D6D3D1', Gold = '#F1F333', DeepBlue = '#3B82F6';
+    
+    am4core.ready(function () {
+        am4core.useTheme(am4themes_animated);
+        var chart = am4core.create("chartdiv_Satisfaction", am4charts.RadarChart);
+        chart.data = [
+            { "dimension": "工作滿意度", "Stay": 2.78, "Leave": 2.47, "All": 2.72 },
+            { "dimension": "環境滿意度", "Stay": 2.72, "Leave": 2.46, "All": 2.72 },
+            { "dimension": "關係滿意度", "Stay": 2.73, "Leave": 2.60, "All": 2.71 },
+            { "dimension": "生活平衡", "Stay": 2.78, "Leave": 2.68, "All": 2.76 }
+        ];
+        // 建立緯度軸 (X軸)
+        var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+        categoryAxis.dataFields.category = "dimension";
+        // 建立數值軸 (Y軸)
+        var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+        valueAxis.renderer.axisFills.template.fill = am4core.color("#D9D9D9");
+        valueAxis.renderer.axisFills.template.fillOpacity = 0.05;
+        valueAxis.min = 0;
+        valueAxis.max = 4; // 滿意度最高4分
+        // 1. 建立「留任者」序列 (Stay)
+        var series1 = chart.series.push(new am4charts.RadarSeries());
+        series1.dataFields.valueY = "Stay";
+        series1.dataFields.categoryX = "dimension";
+        series1.name = "留任者 (Stay)";
+        series1.stroke = am4core.color(Green);
+        series1.fill = series1.stroke;
+        series1.fillOpacity = 0.3;
+        series1.strokeWidth = 3;
+        // 2. 建立「離職者」序列 (Leave)
+        var series2 = chart.series.push(new am4charts.RadarSeries());
+        series2.dataFields.valueY = "Leave";
+        series2.dataFields.categoryX = "dimension";
+        series2.name = "離職者 (Leave)";
+        series2.stroke = am4core.color(Orange);
+        series2.fill = series2.stroke;
+        series2.fillOpacity = 0.3;
+        series2.strokeWidth = 3;
+        // 3. 建立「所有」序列 (All)
+        var series2 = chart.series.push(new am4charts.RadarSeries());
+        series2.dataFields.valueY = "All";
+        series2.dataFields.categoryX = "dimension";
+        series2.name = "所有 (All)";
+        series2.stroke = am4core.color(Gold);
+        series2.fill = series2.stroke;
+        series2.fillOpacity = 0.3;
+        series2.strokeWidth = 3;
+        // 添加圖例
+        chart.legend = new am4charts.Legend();
+        // 添加標題
+        // var title = chart.titles.create();
+        // title.text = "離職 vs 留任員工：滿意度調查";
+        // title.fontSize = 20;
+        // title.marginBottom = 10;
+    });
+
+    am4core.ready(function () {
+        // Themes begin
+        am4core.useTheme(am4themes_animated);
+        // Themes end
+
+        // Create chart instance
+        var chart = am4core.create("chartdiv_Dept_overtime", am4charts.XYChart);
+
+        // Add data
+        chart.data = [{
+            "dept": "Sales",
+            "stay": 54.8,
+            "leave": 45.2  // 加班後的離職率極高！
+        },
+        {
+            "dept": "R&D",
+            "stay": 73.6,
+            "leave": 26.4
+        },
+        {
+            "dept": "HR",
+            "stay": 77.8,
+            "leave": 22.2
+        }];
+
+        // Create axes
+        var categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+        categoryAxis.dataFields.category = "dept";
+        categoryAxis.numberFormatter.numberFormat = "#";
+        categoryAxis.renderer.inversed = true;
+        categoryAxis.renderer.grid.template.location = 0;
+        categoryAxis.renderer.cellStartLocation = 0.1;
+        categoryAxis.renderer.cellEndLocation = 0.9;
+
+        var valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+        valueAxis.renderer.opposite = true;
+
+        // Create series
+        function createSeries(field, name, color) {
+            var series = chart.series.push(new am4charts.ColumnSeries());
+            series.dataFields.valueX = field;
+            series.dataFields.categoryY = "dept";
+            series.name = name;
+
+            // --- 設定顏色 ---
+            series.columns.template.fill = am4core.color(color); // 設定填滿顏色
+            series.columns.template.stroke = am4core.color('#000'); // 設定邊框顏色 
+            // ----------------
+
+            series.columns.template.tooltipText = "{name}: [bold]{valueX}[/]";
+            series.columns.template.height = am4core.percent(100);
+            series.sequencedInterpolation = true;
+
+
+            var valueLabel = series.bullets.push(new am4charts.LabelBullet());
+            valueLabel.label.text = "{valueX}";
+            valueLabel.label.horizontalCenter = "left";
+            valueLabel.label.dx = 10;
+            valueLabel.label.hideOversized = false;
+            valueLabel.label.truncate = false;
+
+            var categoryLabel = series.bullets.push(new am4charts.LabelBullet());
+            categoryLabel.label.text = "{name}";
+            categoryLabel.label.horizontalCenter = "right";
+            categoryLabel.label.dx = -10;
+            categoryLabel.label.fill = am4core.color("#fff");
+            categoryLabel.label.hideOversized = false;
+            categoryLabel.label.truncate = false;
+        }
+
+        createSeries("all", "All", Green);
+        createSeries("overtime", "Overtime", Orange);
+
+
+    }); // end am4core.ready()
+
+    am4core.ready(function () {
+        // 1. 序列配置 (這部分可以放進獨立的 config 檔)
+        var SeriesConfig_Aged_Joblvl = [
+            { field: "lv1", name: "Lv.1", color: Blue },
+            { field: "lv2", name: "Lv.2", color: Green },
+            { field: "lv3", name: "Lv.3", color: Yellow },
+            { field: "lv4", name: "Lv.4", color: Orange },
+            { field: "lv5", name: "Lv.5", color: Pink }
+        ];
+        var data_Aged_Joblvl_stay = [
+            {
+                "category": "18-30",
+                "lv1": 146,
+                "lv2": 79,
+                "lv3": 9,
+                "lv4": 1,
+                "lv5": 0
+            },
+            {
+                "category": "30-40",
+                "lv1": 171,
+                "lv2": 254,
+                "lv3": 96,
+                "lv4": 9,
+                "lv5": 3
+            },
+            {
+                "category": "40-50",
+                "lv1": 62,
+                "lv2": 119,
+                "lv3": 54,
+                "lv4": 45,
+                "lv5": 35
+            },
+            {
+                "category": "50-60",
+                "lv1": 21,
+                "lv2": 28,
+                "lv3": 25,
+                "lv4": 46,
+                "lv5": 25
+            }
+        ]
+        var data_Aged_Joblvl_leave = [
+            {
+                "category": "18-30",
+                "lv1": 79,
+                "lv2": 8,
+                "lv3": 4,
+                "lv4": 0,
+                "lv5": 0
+            },
+            {
+                "category": "30-40",
+                "lv1": 45,
+                "lv2": 31,
+                "lv3": 12,
+                "lv4": 1,
+                "lv5": 0
+            },
+            {
+                "category": "40-50",
+                "lv1": 12,
+                "lv2": 8,
+                "lv3": 9,
+                "lv4": 3,
+                "lv5": 2
+            },
+            {
+                "category": "50-60",
+                "lv1": 7,
+                "lv2": 5,
+                "lv3": 7,
+                "lv4": 1,
+                "lv5": 3
+            }
+        ]
+        var SeriesConfig_Salary_distribution = [
+            { field: "leave", name: "離職", color: Orange },
+            { field: "stay", name: "現職", color: Green },
+        ];
+        createXYChart('chart_Aged_Joblvl_stay', data_Aged_Joblvl_stay, SeriesConfig_Aged_Joblvl);
+        createXYChart('chart_Aged_Joblvl_leave', data_Aged_Joblvl_leave, SeriesConfig_Aged_Joblvl);
+
+        //createXYChart('chartdiv_Salary_distribution',data_Salary_distribution,SeriesConfig_Salary_distribution);
+        //createClusteredStackedChart(chartdiv_Salary_distribution, data_Salary_distribution)
+        var data_Salary_distribution = [{ "category": "0-5k", "No_HR": 26, "No_RD": 442, "No_Sales": 118, "Yes_HR": 10, "Yes_RD": 110, "Yes_Sales": 43, "AttritionRate": 21.76 }, { "category": "5k-10k", "No_HR": 13, "No_RD": 205, "No_Sales": 173, "Yes_HR": 1, "Yes_RD": 12, "Yes_Sales": 36, "AttritionRate": 11.14 }, { "category": "10k-15k", "No_HR": 2, "No_RD": 92, "No_Sales": 34, "Yes_HR": 1, "Yes_RD": 8, "Yes_Sales": 11, "AttritionRate": 13.51 }, { "category": "15k-20k", "No_HR": 10, "No_RD": 89, "No_Sales": 29, "Yes_HR": 0, "Yes_RD": 3, "Yes_Sales": 2, "AttritionRate": 3.76 }]
+
+    }); // end am4core.ready()
+</script>
+
+
+
+<!-- <script src="/static/script.js"></script> -->
+<script src="../static/amchartsFunc.js"></script>
+<script>
+    am4core.ready(function () {
+        am4core.useTheme(am4themes_animated);
+
+        createDonutChart(
+            'Pie',
+            "people_dpet",
+           
+            [{ "type": "RD", "num": 133 }, { "type": "Sales", "num": 92 }, { "type": "HR", "num": 18 }],
+            'num',
+            'type',
+            [Orange, Green, Yellow])
+        createDonutChart(
+            'Pie',
+            "people_dpet3",
+           // [{ "type": "stay", "num": 1260 }, { "type": "leave", "num": 263 }, ],
+            //[{ "type": "RD", "num": 828 }, { "type": "Sales", "num": 354 }, { "type": "HR", "num": 51 }],
+            [{ "type": "RD", "num": 961 }, { "type": "Sales", "num": 446 }, { "type": "HR", "num": 63 }],
+            'num',
+            'type',
+            [Orange, Green, Yellow])
+
+
+        createDonutChart(
+            'Pie',
+            "people_dpet2",
+            [
+                { "type": "Research Scientist", "num": 91 },
+                { "type": "Sales Executive", "num": 88 },
+                { "type": "Laboratory Technician", "num": 62 },
+                { "type": "Manufacturing Director", "num": 42 },
+                { "type": "Healthcare Representative", "num": 35 },
+                { "type": "Manager", "num": 26 },
+                { "type": "Sales Representative", "num": 13 },
+                { "type": "Research Director", "num": 10 },
+                { "type": "Human Resources", "num": 4 }],
+            'num',
+            'type',
+            [Orange, Yellow, Pink, Blue, DeepBlue, Green, Gray, Brown, "#000"])
+        // 甜甜圈圖呼叫
+        createDonutChart(
+            ['Donut', '加班', '加班率'],
+            "chartdiv_Dept_overtime_S",
+            [{ "type": "加班", "num": 80 }, { "type": "正常", "num": 274 }],
+            "num",   // 對應資料中的 num
+            "type",  // 對應資料中的 type
+            [Pink, Gray] // 自訂顏色
+        );
+        createDonutChart(
+            ['Donut', '加班', '加班率'],
+            "chartdiv_Dept_overtime_RD",
+            [{ "type": "加班", "num": 197 }, { "type": "正常", "num": 631 }],
+            "num",   // 對應資料中的 num
+            "type",  // 對應資料中的 type
+            [Pink, Gray] // 自訂顏色
+        );
+        createDonutChart(
+            ['Donut', '加班', '加班率'],
+            "chartdiv_Dept_overtime_HR",
+            [{ "type": "加班", "num": 12 }, { "type": "正常", "num": 39 }],
+            "num",   // 對應資料中的 num
+            "type",  // 對應資料中的 type
+            [Pink, Gray] // 自訂顏色
+        );
+        createDonutChart(
+            ['Donut', '加班', '加班率'],
+            "chartdiv_Dept_overtime_S_leave",
+            [{ "type": "加班", "num": 48 }, { "type": "正常", "num": 44 }],
+            "num",   // 對應資料中的 num
+            "type",  // 對應資料中的 type
+            [Pink, Gray] // 自訂顏色
+        );
+        createDonutChart(
+            ['Donut', '加班', '加班率'],
+            "chartdiv_Dept_overtime_RD_leave",
+            [{ "type": "加班", "num": 74 }, { "type": "正常", "num": 59 }],
+            "num",   // 對應資料中的 num
+            "type",  // 對應資料中的 type
+            [Pink, Gray] // 自訂顏色
+        );
+        createDonutChart(
+            ['Donut', '加班', '加班率'],
+            "chartdiv_Dept_overtime_HR_leave",
+            [{ "type": "加班", "num": 5 }, { "type": "正常", "num": 7 }],
+            "num",   // 對應資料中的 num
+            "type",  // 對應資料中的 type
+            [Pink, Gray] // 自訂顏色
+        );
+
+
+        var chart = am4core.create("chart_dept_Heat", am4charts.XYChart);
+        chart.maskBullets = false;
+
+        // 數據導入 (將 Python 產出的結果貼在此處)
+        chart.data = [
+
+            {
+                "dept": "Research & Development",
+                "lv": "Lv1",
+                "value": 23.3
+            },
+            {
+                "dept": "Research & Development",
+                "lv": "Lv2",
+                "value": 5.3
+            },
+            {
+                "dept": "Research & Development",
+                "lv": "Lv3",
+                "value": 10.1
+            },
+            {
+                "dept": "Research & Development",
+                "lv": "Lv4",
+                "value": 1.5
+            },
+            {
+                "dept": "Research & Development",
+                "lv": "Lv5",
+                "value": 6.1
+            },
+            {
+                "dept": "Sales",
+                "lv": "Lv1",
+                "value": 42.1
+            },
+            {
+                "dept": "Sales",
+                "lv": "Lv2",
+                "value": 15.4
+            },
+            {
+                "dept": "Sales",
+                "lv": "Lv3",
+                "value": 20.5
+            },
+            {
+                "dept": "Sales",
+                "lv": "Lv4",
+                "value": 11.8
+            },
+            {
+                "dept": "Sales",
+                "lv": "Lv5",
+                "value": 15.4
+            },
+            {
+                "dept": "Human Resources",
+                "lv": "Lv1",
+                "value": 30.3
+            },
+            {
+                "dept": "Human Resources",
+                "lv": "Lv2",
+                "value": 0.0
+            },
+            {
+                "dept": "Human Resources",
+                "lv": "Lv3",
+                "value": 33.3
+            },
+            {
+                "dept": "Human Resources",
+                "lv": "Lv4",
+                "value": 0.0
+            },
+            {
+                "dept": "Human Resources",
+                "lv": "Lv5",
+                "value": 0.0
+            },
+        ]
+
+
+        var xAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+        xAxis.dataFields.category = "dept";
+        xAxis.renderer.grid.template.location = 0;
+
+        var yAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+        yAxis.dataFields.category = "lv";
+        yAxis.renderer.grid.template.location = 0;
+        //yAxis.renderer.inversed = true; // 讓 Lv1 在上面
+
+        var series = chart.series.push(new am4charts.ColumnSeries());
+        series.dataFields.categoryX = "dept";
+        series.dataFields.categoryY = "lv";
+        series.dataFields.value = "value";
+        series.columns.template.strokeOpacity = 0;
+        series.columns.template.width = am4core.percent(100);
+        series.columns.template.height = am4core.percent(100);
+
+        // 熱力漸層：安全綠 -> 警戒黃 -> 危機紅
+        series.heatRules.push({
+            target: series.columns.template,
+            property: "fill",
+            min: am4core.color(Gray),
+            max: am4core.color(Pink)
+        });
+
+        // 提示與圖例
+        series.columns.template.tooltipText = "{dept} {lv}\n平均風險: [bold]{value}%[/]";
+        var heatLegend = chart.createChild(am4charts.HeatLegend);
+        heatLegend.series = series;
+        heatLegend.width = am4core.percent(100);
+    });
+
+
+    am4core.ready(function () {
+
+        am4core.useTheme(am4themes_animated);
+        var chart = am4core.create("chartdiv_Salary_distribution", am4charts.XYChart);
+
+        //chart.data = [{ "category": "0-5k", "No_HR": 26, "No_RD": 442, "No_Sales": 118, "Yes_HR": 10, "Yes_RD": 110, "Yes_Sales": 43, "AttritionRate": 21.76 }, { "category": "5k-10k", "No_HR": 13, "No_RD": 205, "No_Sales": 173, "Yes_HR": 1, "Yes_RD": 12, "Yes_Sales": 36, "AttritionRate": 11.14 }, { "category": "10k-15k", "No_HR": 2, "No_RD": 92, "No_Sales": 34, "Yes_HR": 1, "Yes_RD": 8, "Yes_Sales": 11, "AttritionRate": 13.51 }, { "category": "15k-20k", "No_HR": 10, "No_RD": 89, "No_Sales": 29, "Yes_HR": 0, "Yes_RD": 3, "Yes_Sales": 2, "AttritionRate": 3.76 }];
+          chart.data = [{"category":"0-5k","AttritionRate":21.76,"OvertimeRate":27.37,"Yes_RD":110,"Yes_Sales":43,"Yes_HR":10,"No_RD":442,"No_Sales":118,"No_HR":26},{"category":"5k-10k","AttritionRate":11.14,"OvertimeRate":28.64,"Yes_RD":12,"Yes_Sales":36,"Yes_HR":1,"No_RD":205,"No_Sales":173,"No_HR":13},{"category":"10k-15k","AttritionRate":13.51,"OvertimeRate":35.14,"Yes_RD":8,"Yes_Sales":11,"Yes_HR":1,"No_RD":92,"No_Sales":34,"No_HR":2},{"category":"15k-20k","AttritionRate":3.76,"OvertimeRate":24.81,"Yes_RD":3,"Yes_Sales":2,"Yes_HR":0,"No_RD":89,"No_Sales":29,"No_HR":10}]
+
+        // 建立 X 軸
+        var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+        categoryAxis.dataFields.category = "category";
+        categoryAxis.renderer.grid.template.location = 0;
+        categoryAxis.renderer.minGridDistance = 20;
+        categoryAxis.renderer.cellStartLocation = 0.1;
+        categoryAxis.renderer.cellEndLocation = 0.9;
+        // --- 關鍵：隱藏下方小黑框 ---
+        categoryAxis.cursorTooltipEnabled = false;
+
+        var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+        valueAxis.min = 0;
+        valueAxis.title.text = "人數";
+
+        // 修改後的 createSeries
+        function createSeries(field, name, stacked, color) {
+            var series = chart.series.push(new am4charts.ColumnSeries());
+            series.dataFields.valueY = field;
+            series.dataFields.categoryX = "category";
+            series.name = name;
+            series.stacked = stacked;
+            series.columns.template.stroke = am4core.color('#000');
+            series.columns.template.fill = am4core.color(color);
+            series.columns.template.width = am4core.percent(95);
+
+            // --- 關鍵：設為空字串，讓 Cursor 能抓到這根柱子但不顯示小框 ---
+            series.tooltipText = "";
+        }
+
+        // 在職組 (第一根柱子)
+        createSeries("No_RD", "在職RD", false, '#316BCA');
+        createSeries("No_Sales", "在職Sales", true, DeepBlue);
+        createSeries("No_HR", "在職HR", true, Blue);
+        // 離職組 (第二根柱子，第一個設為 false 開始新組)
+        createSeries("Yes_RD", "離職RD", false, '#FF514F');
+        createSeries("Yes_Sales", "離職Sales", true, Orange);
+        createSeries("Yes_HR", "離職HR", true, '#FF8E4F');
+
+
+        // 右側 Y 軸 (百分比軸)
+        var valueAxis2 = chart.yAxes.push(new am4charts.ValueAxis());
+        valueAxis2.renderer.opposite = true;
+        valueAxis2.min = 0;
+        valueAxis2.max = 100;
+        valueAxis2.strictMinMax = true;
+        valueAxis2.renderer.grid.template.disabled = true;
+
+        // 建立折線
+        var lineSeries = chart.series.push(new am4charts.LineSeries());
+        lineSeries.dataFields.valueY = "AttritionRate";
+        lineSeries.dataFields.categoryX = "category";
+        lineSeries.name = "總體離職率";
+        lineSeries.stroke = am4core.color(Yellow); // 使用鮮黃色色碼
+        lineSeries.strokeWidth = 3;
+        lineSeries.yAxis = valueAxis2;
+        // --- 關鍵：折線也不要單獨顯示 tooltip ---
+        lineSeries.tooltipText = "";
+
+        var bullet = lineSeries.bullets.push(new am4charts.CircleBullet());
+        bullet.circle.fill = am4core.color("#fff");
+        bullet.circle.strokeWidth = 2;
+
+        // 建立折線2
+        var lineSeries2 = chart.series.push(new am4charts.LineSeries());
+        lineSeries2.dataFields.valueY = "OvertimeRate";
+        lineSeries2.dataFields.categoryX = "category";
+        lineSeries2.name = "總體加班率";
+        lineSeries2.stroke = am4core.color(Green);
+        lineSeries2.strokeWidth = 3;
+        lineSeries2.yAxis = valueAxis2;
+        // --- 關鍵：折線也不要單獨顯示 tooltip ---
+        lineSeries2.tooltipText = "";
+
+        var bullet2 = lineSeries2.bullets.push(new am4charts.CircleBullet());
+        bullet2.circle.fill = am4core.color("#fff");
+        bullet2.circle.strokeWidth = 2;
+
+        // --- 核心：大黑框合併 Series ---
+        var infoSeries = chart.series.push(new am4charts.ColumnSeries());
+        infoSeries.dataFields.valueY = "No_RD";
+        infoSeries.dataFields.categoryX = "category";
+        infoSeries.tooltipHTML = " ";
+        infoSeries.columns.template.fillOpacity = 0.001;
+        infoSeries.columns.template.strokeOpacity = 0;
+
+        // 樣式調整
+        infoSeries.tooltip.getFillFromObject = false;
+        infoSeries.tooltip.background.fill = am4core.color("#000000");
+        infoSeries.tooltip.background.fillOpacity = 0.9;
+        infoSeries.tooltip.pointerOrientation = "vertical";
+        infoSeries.tooltip.dy = -10;
+
+        // Adapter 內容設定
+        infoSeries.adapter.add("tooltipHTML", function (text, target) {
+            var d = target.tooltipDataItem ? target.tooltipDataItem.dataContext : null;
+            if (d) {
+                return `
+                <div style='text-align:center; border-bottom:1px solid #fff; margin-bottom:8px; padding:5px;'>
+                    <b>薪資區間: ${d.category}</b>
+                </div>
+                <table style='color:#fff; font-size:13px;'>
+                    <tr><td style='color:#90A8ED'><b>[在職]</b></td><td style='padding-left:10px;'>RD:${d.No_RD} | Sales:${d.No_Sales} | HR:${d.No_HR}</td></tr>
+                    <tr><td style='color:#FF514F'><b>[離職]</b></td><td style='padding-left:10px;'>RD:${d.Yes_RD} | Sales:${d.Yes_Sales} | HR:${d.Yes_HR}</td></tr>
+                    <tr style='border-top:1px solid #666;'>
+                        <td colspan='2' style='text-align:right; padding-top:8px;'>
+                            離職率: <span style='font-size:16px; color:#FAD02E; font-weight:bold;'>${d.AttritionRate}%</span>
+                        </td>
+                    </tr>
+                    <tr style='border-top:1px solid #666;'>
+                        <td colspan='2' style='text-align:right; padding-top:8px;'>
+                            加班率: <span style='font-size:16px; color:#23A094; font-weight:bold;'>${d.OvertimeRate}%</span>
+                        </td>
+                    </tr>
+                </table>`;
+            }
+            return text;
+        });
+
+        // Cursor 與圖例
+        chart.cursor = new am4charts.XYCursor();
+        chart.cursor.lineY.disabled = true;
+        chart.cursor.behavior = "none";
+        chart.legend = new am4charts.Legend();
+
+    })
+</script>
+<script>
+am4core.ready(function() {
+    am4core.useTheme(am4themes_animated);
+    var chart = am4core.create("chartdiv_AgePyramid", am4charts.XYChart);
+    chart.fontFamily = "Microsoft JhengHei";
+
+    // 1. 範例資料
+    chart.data = [
+        {"category": "18-30", "stay": 235, "left": 91}, 
+        {"category": "30-40", "stay": 533, "left": 89},
+        {"category": "40-50", "stay": 315, "left": 34},
+        {"category": "50-60+", "stay": 150, "left": 23}
+    ];
+
+    // 2. 建立 X 軸
+    var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+    categoryAxis.dataFields.category = "category";
+    categoryAxis.renderer.grid.template.location = 0;
+    categoryAxis.cursorTooltipEnabled = false;
+
+    // 3. 建立左側 Y 軸 (人數)
+    var valueAxis1 = chart.yAxes.push(new am4charts.ValueAxis());
+    valueAxis1.title.text = "人數";
+    valueAxis1.min = 0;
+
+    // 4. 建立右側 Y 軸 (離職率 %)
+    var valueAxis2 = chart.yAxes.push(new am4charts.ValueAxis());
+    valueAxis2.title.text = "離職率 (%)";
+    valueAxis2.renderer.opposite = true; // 放右邊
+    valueAxis2.min = 0;
+    valueAxis2.max = 100; // 固定 0-100
+    valueAxis2.renderer.grid.template.disabled = true; // 隱藏格線讓畫面乾淨
+
+    // 5. 建立系列 (人數折線)
+    function createLineSeries(field, name, color, axis) {
+        var series = chart.series.push(new am4charts.LineSeries());
+        series.dataFields.valueY = field;
+        series.dataFields.categoryX = "category";
+        series.name = name;
+        series.stroke = am4core.color(color);
+        series.strokeWidth = 3;
+        series.yAxis = axis;
+        series.tooltipText = ""; // 禁用小框
+
+        var bullet = series.bullets.push(new am4charts.CircleBullet());
+        bullet.circle.fill = am4core.color("#fff");
+        bullet.circle.strokeWidth = 2;
+        bullet.circle.stroke = am4core.color(color);
+        
+        return series;
+    }
+
+    createLineSeries("stay", "在職人數", Green, valueAxis1);
+    createLineSeries("left", "離職人數", Orange, valueAxis1);
+
+    // 6. 建立離職率折線 (虛線風格)
+    var rateSeries = chart.series.push(new am4charts.LineSeries());
+    rateSeries.dataFields.valueY = "rate"; // 這邊會用 adapter 計算
+    rateSeries.dataFields.categoryX = "category";
+    rateSeries.name = "離職率";
+    rateSeries.stroke = am4core.color("#FAD02E");
+    rateSeries.strokeWidth = 3;
+    rateSeries.strokeDasharray = "5,4"; // 設為虛線區分
+    rateSeries.yAxis = valueAxis2;
+    rateSeries.tooltipText = "";
+
+    // 透過 adapter 在資料載入時計算 rate
+    chart.events.on("beforedatavalidated", function() {
+        for (var i = 0; i < chart.data.length; i++) {
+            var d = chart.data[i];
+            d.rate = ((d.left / (d.stay + d.left)) * 100).toFixed(1);
+        }
+    });
+
+    // 7. 大黑框合併顯示 (包含風險評估)
+    var infoSeries = chart.series.push(new am4charts.LineSeries());
+    infoSeries.dataFields.valueY = "stay";
+    infoSeries.dataFields.categoryX = "category";
+    infoSeries.strokeOpacity = 0;
+    infoSeries.tooltipHTML = " ";
+
+    infoSeries.tooltip.background.fill = am4core.color("#000");
+    infoSeries.tooltip.background.fillOpacity = 0.9;
+
+    infoSeries.adapter.add("tooltipHTML", function(text, target) {
+        var d = target.tooltipDataItem ? target.tooltipDataItem.dataContext : null;
+        if (d) {
+            var rate = d.rate;
+            var risk = "低"; var riskColor = "#55EFC4";
+            if (rate > 15) { risk = "高"; riskColor = "#FF7675"; }
+            else if (rate > 10) { risk = "中"; riskColor = "#FAD02E"; }
+
+            return `
+                <div style='text-align:center; border-bottom:1px solid #fff; margin-bottom:8px; padding-bottom:5px;'>
+                    <b>年齡分層: ${d.category}</b>
+                </div>
+                <table style='color:#fff; min-width:180px; font-size:13px;'>
+                    <tr><td>在職人數:</td><td style='text-align:right;'>${d.stay}</td></tr>
+                    <tr><td>離職人數:</td><td style='text-align:right;'>${d.left}</td></tr>
+                    <tr style='border-top:1px solid #666;'>
+                        <td style='padding-top:5px;'>離職率:</td>
+                        <td style='text-align:right; padding-top:5px; color:#FAD02E; font-weight:bold;'>${rate}%</td>
+                    </tr>
+                    <tr>
+                        <td>風險等級:</td>
+                        <td style='text-align:right; font-weight:bold; color:${riskColor};'>${risk}風險</td>
+                    </tr>
+                </table>`;
+        }
+        return text;
+    });
+
+    chart.cursor = new am4charts.XYCursor();
+    chart.legend = new am4charts.Legend();
+});
+
+
+am4core.ready(function() {
+  am4core.useTheme(am4themes_animated);
+
+  var chart = am4core.create("chartdiv_RH", am4charts.XYChart);
+  chart.maskBullets = false;
+
+  // --- 原始數據矩陣 ---
+  var rawMatrix = {
+    "年齡": [1.0, 0.010661, -0.001686, 0.024287, 0.497855, 0.028051, 0.03751, 0.680381, -0.297572, 0.036056, 0.043886, 0.086028, 0.036476, 0.004508, 0.017919, 0.305915, 0.063559, -0.000541, -0.159205],
+    "日新": [0.010661, 1.0, -0.004985, 0.023381, 0.007707, -0.032182, 0.042143, 0.014515, -0.009417, -0.017347, 0.025352, -0.022231, 0.022307, 0.026457, 0.023608, -0.032231, 0.037391, 0.045588, -0.056652],
+    "離家距離": [-0.001686, -0.004985, 1.0, 0.031131, -0.017014, 0.027473, 0.044872, 0.004628, -0.017467, 0.386568, 0.014908, 0.006481, 0.005839, -0.040463, -0.002426, 0.014959, -0.041257, -0.016921, 0.077924],
+    "時薪": [0.024287, 0.023381, 0.031131, 1.0, -0.015794, -0.015297, 0.050263, -0.002334, 0.001094, 0.005382, -0.029475, -0.061531, -0.02193, 0.038, 0.015596, -0.020715, -0.052393, 0.007614, -0.006846],
+    "月收入": [0.497855, 0.007707, -0.017014, -0.015794, 1.0, 0.034814, 0.005408, 0.772893, 0.214927, 0.019358, 0.532541, 0.114987, 0.042966, 0.145948, 0.091893, 0.504334, 0.12403, -0.015816, -0.15984],
+    "月薪": [0.028051, -0.032182, 0.027473, -0.015297, 0.034814, 1.0, -0.034323, 0.026442, 0.057934, 0.050449, -0.001623, 0.006499, -0.021686, 0.007929, 0.016531, -0.020453, -0.01781, 0.022088, 0.01517],
+    "股權等級": [0.03751, 0.042143, 0.044872, 0.050263, 0.005408, -0.034323, 1.0, 0.010136, -0.035627, 0.012765, -0.002717, 0.002606, 0.042007, -0.002493, 0.023156, 0.017287, 0.056047, 0.012278, -0.137145],
+    "總工作年資": [0.680381, 0.014515, 0.004628, -0.002334, 0.772893, 0.026442, 0.010136, 1.0, -0.321807, 0.026575, 0.688715, 0.11924, 0.105759, -0.009843, -0.013448, 0.618388, 0.090792, 0.016319, -0.171063],
+    "月收/總工作年資": [-0.297572, -0.009417, -0.017467, 0.001094, 0.214927, 0.057934, -0.035627, -0.321807, 1.0, 0.018852, -0.327185, -0.061697, -0.228617, 0.170589, 0.128707, -0.201018, 0.018588, -0.050777, 0.097731],
+    "距離加班": [0.036056, -0.017347, 0.386568, 0.005382, 0.019358, 0.050449, 0.012765, 0.026575, 0.018852, 1.0, -0.00728, 0.01016, -0.037639, -0.027172, -0.027718, -0.000791, -0.301624, 0.000973, 0.236476],
+    "職涯成熟度": [0.043886, 0.025352, 0.014908, -0.029475, 0.532541, -0.001623, -0.002717, 0.688715, -0.327185, -0.00728, 1.0, 0.114654, 0.236996, 0.060301, 0.006904, 0.559887, 0.068341, 0.011145, -0.131763],
+    "職涯停滯": [0.086028, -0.022231, 0.006481, -0.061531, 0.114987, 0.006499, 0.002606, 0.11924, -0.061697, 0.01016, 0.114654, 1.0, 0.288113, 0.012562, -0.003711, 0.180522, 0.01353, -0.009937, 0.010412],
+    "想離開主管": [0.036476, 0.022307, 0.005839, -0.02193, 0.042966, -0.021686, 0.042007, 0.105759, -0.228617, -0.037639, 0.236996, 0.288113, 1.0, 0.097404, 0.066683, 0.235579, 0.026384, -0.0307, -0.153259],
+    "職等相對收入": [0.004508, 0.026457, -0.040463, 0.038, 0.145948, 0.007929, -0.002493, -0.009843, 0.170589, -0.027172, 0.060301, 0.012562, 0.097404, 1.0, 0.563676, -0.016307, -0.006138, 0.004191, -0.057736],
+    "出差報酬比": [0.017919, 0.023608, -0.002426, 0.015596, 0.091893, 0.016531, 0.023156, -0.013448, 0.128707, -0.027718, 0.006904, -0.003711, 0.066683, 0.563676, 1.0, 0.002849, 0.014032, 0.012049, -0.119992],
+    "年資*績效": [0.305915, -0.032231, 0.014959, -0.020715, 0.504334, -0.020453, 0.017287, 0.618388, -0.201018, -0.000791, 0.559887, 0.180522, 0.235579, -0.016307, 0.002849, 1.0, 0.048048, -0.001029, -0.135808],
+    "錢少事多離家遠+單身": [0.063559, 0.037391, -0.041257, -0.052393, 0.12403, -0.01781, 0.056047, 0.090792, 0.018588, -0.301624, 0.068341, 0.01353, 0.026384, -0.006138, 0.014032, 0.048048, 1.0, -0.039802, -0.234466],
+    "教育背景": [-0.000541, 0.045588, -0.016921, 0.007614, -0.015816, 0.022088, 0.012278, 0.016319, -0.050777, 0.000973, 0.011145, -0.009937, -0.0307, 0.004191, 0.012049, -0.001029, -0.039802, 1.0, -0.089095],
+    //"離職": [-0.159205, -0.056652, 0.077924, -0.006846, -0.15984, 0.01517, -0.137145, -0.171063, 0.097731, 0.236476, -0.131763, 0.010412, -0.153259, -0.057736, -0.119992, -0.135808, -0.234466, -0.089095, 1.0]
+  };
+  var fields = Object.keys(rawMatrix);
+
+  // --- 資料轉換邏輯 (關鍵修改) ---
+  var chartData = [];
+  for (var i = 0; i < fields.length; i++) {
+    var yVar = fields[i];
+    for (var j = 0; j < fields.length; j++) {
+      var xVar = fields[j];
+      chartData.push({
+        "yField": yVar,
+        "xField": xVar,
+        "value": rawMatrix[yVar][j]
+      });
+    }
+  }
+  chart.data = chartData;
+
+  // --- 座標軸配置 ---
+  var xAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+  var yAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+
+  xAxis.dataFields.category = "xField";
+  yAxis.dataFields.category = "yField";
+
+  xAxis.renderer.grid.template.disabled = true;
+  xAxis.renderer.minGridDistance = 20;
+  
+  // X 軸標籤旋轉以防重疊
+  xAxis.renderer.labels.template.rotation = -45;
+  xAxis.renderer.labels.template.horizontalCenter = "right";
+  xAxis.renderer.labels.template.fontSize = 11;
+
+  yAxis.renderer.grid.template.disabled = true;
+  yAxis.renderer.inversed = true;
+  yAxis.renderer.minGridDistance = 20;
+  yAxis.renderer.labels.template.fontSize = 11;
+
+  // --- Series 配置 ---
+  var series = chart.series.push(new am4charts.ColumnSeries());
+  series.dataFields.categoryX = "xField";
+  series.dataFields.categoryY = "yField";
+  series.dataFields.value = "value";
+  series.sequencedInterpolation = true;
+  series.defaultState.transitionDuration = 1000;
+
+  var bgColor = am4core.color("#ffffff");
+  var columnTemplate = series.columns.template;
+  columnTemplate.strokeWidth = 1;
+  columnTemplate.strokeOpacity = 0.2;
+  columnTemplate.stroke = am4core.color("#ffffff");
+  // 修正 Tooltip 顯示數值格式
+  columnTemplate.tooltipText = "{yField} x {xField}: [bold]{value}[/]";
+  columnTemplate.width = am4core.percent(100);
+  columnTemplate.height = am4core.percent(100);
+
+  // --- 熱力顏色規則 (藍 -> 白 -> 紅) ---
+  series.heatRules.push({
+    target: columnTemplate,
+    property: "fill",
+    min: am4core.color("#ffffff"), // 負相關 
+    max: am4core.color("#fe6f50"), // 正相關 (紅色)
+    dataField: "value"
+  });
+
+  // --- Legend 圖例 ---
+  var heatLegend = chart.bottomAxesContainer.createChild(am4charts.HeatLegend);
+  heatLegend.width = am4core.percent(100);
+  heatLegend.series = series;
+  heatLegend.valueAxis.renderer.labels.template.fontSize = 10;
+  heatLegend.valueAxis.renderer.minGridDistance = 30;
+
+  // 滑鼠移入效果
+  series.columns.template.events.on("over", function(event) {
+    handleHover(event.target);
+  });
+  series.columns.template.events.on("hit", function(event) {
+    handleHover(event.target);
+  });
+
+  function handleHover(column) {
+    if (!isNaN(column.dataItem.value)) {
+      heatLegend.valueAxis.showTooltipAt(column.dataItem.value);
+    } else {
+      heatLegend.valueAxis.hideTooltip();
+    }
+  }
+
+  series.columns.template.events.on("out", function(event) {
+    heatLegend.valueAxis.hideTooltip();
+  });
+
+});
+</script>
+
+<script>
+am5.ready(function() {
+  // Create root element
+  var root = am5.Root.new("chartContribution");
+  var myTheme = am5.Theme.new(root);
+
+  myTheme.rule("Grid", ["base"]).setAll({
+    strokeOpacity: 0.1
+  });
+
+  root.setThemes([
+    am5themes_Animated.new(root),
+    myTheme
+  ]);
+
+  // Create chart
+  var chart = root.container.children.push(
+    am5xy.XYChart.new(root, {
+      panX: false,
+      panY: false,
+      wheelX: "none",
+      wheelY: "none",
+      paddingLeft: 0
+    })
+  );
+
+  // Create axes
+  var yRenderer = am5xy.AxisRendererY.new(root, {
+    minGridDistance: 20, // 縮減間距以顯示更多標籤
+    minorGridEnabled: true
+  });
+  yRenderer.grid.template.set("location", 1);
+
+  var yAxis = chart.yAxes.push(
+    am5xy.CategoryAxis.new(root, {
+      maxDeviation: 0,
+      categoryField: "Feature", // 對應資料中的特徵名稱
+      renderer: yRenderer
+    })
+  );
+
+  var xAxis = chart.xAxes.push(
+    am5xy.ValueAxis.new(root, {
+      maxDeviation: 0,
+      min: 0,
+      renderer: am5xy.AxisRendererX.new(root, {
+        visible: true,
+        strokeOpacity: 0.1,
+        minGridDistance: 80
+      })
+    })
+  );
+
+  // Create series
+  var series = chart.series.push(
+    am5xy.ColumnSeries.new(root, {
+      name: "XGBoost Gain",
+      xAxis: xAxis,
+      yAxis: yAxis,
+      valueXField: "value",
+      categoryYField: "Feature",
+      sequencedInterpolation: true
+    })
+  );
+var riskColor = am5.color(Orange);    // 紅色 = 增加離職
+var safeColor = am5.color(Blue);    // 藍色 = 降低離職
+  var columnTemplate = series.columns.template;
+  columnTemplate.setAll({
+    draggable: true,
+    cursorOverStyle: "pointer",
+    tooltipText: "{categoryY}: [bold]{valueX}[/]",
+    cornerRadiusBR: 10,
+    cornerRadiusTR: 10,
+    strokeOpacity: 0,
+    fill:riskColor
+  });
+
+  // 自動填充顏色
+  // 顏色設定
+
+var increaseRisk = new Set([
+  "錢少事多離家遠+單身",   // Burnout/Life stress 相關
+  "住得遠又加班",           // Distance_Overtime_Interaction
+  "差旅投資報酬率",         // Travel_ROI（出差頻繁）
+  "很久沒升遷",             // YearsSinceLastPromotion
+  "職業成熟度",              // Career_Stagnation
+  "住得遠又加班","教育背景","很久沒升遷"
+]);
+
+
+// adapter 讀取每筆資料的 fill 欄位
+columnTemplate.adapters.add("fill", (fill, target) => {
+  if (target.dataItem) {
+    var dataContext = target.dataItem.dataContext;
+    return dataContext && dataContext.fill ? dataContext.fill : fill;
+  }
+  return fill;
+});
+
+columnTemplate.adapters.add("stroke", (stroke, target) => {
+  if (target.dataItem) {
+    var dataContext = target.dataItem.dataContext;
+    return dataContext && dataContext.fill ? dataContext.fill : stroke;
+  }
+  return stroke;
+});
+
+
+  // 排序邏輯
+  function getSeriesItem(category) {
+    for (var i = 0; i < series.dataItems.length; i++) {
+      var dataItem = series.dataItems[i];
+      if (dataItem.get("categoryY") == category) return dataItem;
+    }
+  }
+
+  function sortCategoryAxis() {
+    series.dataItems.sort(function (x, y) {
+      return y.get("graphics").y() - x.get("graphics").y();
+    });
+    var easing = am5.ease.out(am5.ease.cubic);
+
+    am5.array.each(yAxis.dataItems, function (dataItem) {
+      var seriesDataItem = getSeriesItem(dataItem.get("category"));
+      if (seriesDataItem) {
+        var index = series.dataItems.indexOf(seriesDataItem);
+        var column = seriesDataItem.get("graphics");
+        var fy = yRenderer.positionToCoordinate(yAxis.indexToPosition(index)) - column.height() / 2;
+
+        if (index != dataItem.get("index")) {
+          dataItem.set("index", index);
+          column.set("dy", -(fy - column.y()));
+          column.animate({ key: "dy", to: 0, duration: 600, easing: easing });
+        } else {
+          column.animate({ key: "y", to: fy, duration: 600, easing: easing });
+        }
+      }
+    });
+    yAxis.dataItems.sort(function (x, y) { return x.get("index") - y.get("index"); });
+  }
+
+  columnTemplate.events.on("dragstop", () => {
+    sortCategoryAxis();
+  });
+  
+
+
+  // --- 輸入你的貢獻值數據 ---
+  var data = [
+    { Feature: "錢少事多離家遠+單身", "value": 13.368742 ,fill: riskColor},
+    { Feature: "總工作年資", "value": 7.653131 ,fill: safeColor},
+    { Feature: "股票期權等級", "value": 7.530826 ,fill: safeColor},
+    { Feature: "年資表現緩衝", "value": 6.660203 ,fill: safeColor},
+    { Feature: "與主管適應度", "value": 5.129708 ,fill: safeColor},
+    { Feature: "月收入", "value": 4.843130 ,fill: safeColor},
+    { Feature: "年齡", "value": 4.787227 ,fill: safeColor},
+    { Feature: "住得遠又加班", "value": 4.619868,fill: riskColor },
+    { Feature: "差旅投資報酬率", "value": 4.571795 ,fill: safeColor},
+    { Feature: "教育背景", "value": 4.445254 ,fill: riskColor},
+    { Feature: "很久沒升遷", "value": 4.353915 ,fill: riskColor},
+    { Feature: "單位年資收入", "value": 3.731890 ,fill: safeColor},
+    { Feature: "離家距離", "value": 3.478198 ,fill: riskColor},
+    { Feature: "職等相對收入", "value": 3.390335,fill: safeColor },
+    { Feature: "日薪", "value": 2.948900 ,fill: safeColor},
+    { Feature: "時薪", "value": 2.757328 ,fill: safeColor},
+    { Feature: "職業成熟度", "value": 2.655237 ,fill: safeColor},
+    { Feature: "月薪", "value": 2.629163 ,fill: safeColor}
+  ];
+
+  // 數據反轉（因為 Y 軸是從下往上繪製，反轉後最高值會在最上面）
+  data.reverse();
+
+  yAxis.data.setAll(data);
+  series.data.setAll(data);
+
+  series.appear(1000);
+  chart.appear(1000, 100);
+});
+</script>
+
+<body>
+
+</html>

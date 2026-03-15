@@ -1,0 +1,402 @@
+@charset "UTF-8";
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Chiron GoRound TC", sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  background-color: #F4F4F0;
+  padding-top: 24px;
+}
+
+.wrapper {
+  width: 100%;
+}
+
+aside {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 240px;
+  background-color: #fff;
+  padding: 2rem 1.5rem;
+  border-radius: 0;
+  border-right: 1px solid rgba(36, 36, 35, 0.5);
+  height: 100vh;
+}
+aside .menu-title {
+  margin-bottom: 24px;
+  text-align: center;
+}
+aside .menu-title img {
+  max-width: 100%;
+}
+aside ul {
+  padding: 0;
+}
+aside ul li {
+  list-style: none;
+  margin-bottom: 4px;
+}
+aside ul a {
+  display: block;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  color: #000;
+  border-radius: 20px;
+}
+aside ul a:hover {
+  background-color: #F4F4F0;
+  transition: 0.4s ease-in;
+  border: 1px solid rgba(0, 0, 0, 0.337254902);
+}
+aside ul a.current {
+  background-color: #000;
+  color: #F4F4F0;
+  border: 1px solid #000;
+  padding-left: 15px;
+  transition: 0.4s ease-in;
+}
+
+.m-nav {
+  align-items: flex-end;
+  justify-content: space-around;
+}
+.m-nav ul {
+  padding: 0;
+  margin-bottom: 0;
+}
+.m-nav ul li {
+  list-style: none;
+  margin-left: 8px;
+}
+.m-nav ul a {
+  display: block;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  color: #000;
+  border-radius: 20px;
+}
+.m-nav ul a:hover {
+  background-color: #F4F4F0;
+  transition: 0.4s ease-in;
+  border: 1px solid rgba(0, 0, 0, 0.337254902);
+}
+.m-nav ul a.current {
+  background-color: #000;
+  color: #F4F4F0;
+  border: 1px solid #000;
+  padding-left: 15px;
+  transition: 0.4s ease-in;
+}
+
+main {
+  width: calc(100vw - 240px);
+  margin-left: 255px;
+  padding: 0.5rem 2.5rem;
+}
+
+.card {
+  margin: 0.5rem;
+  padding: 24px;
+  border: 1px solid rgba(36, 36, 35, 0.5);
+  border-radius: 1.5rem;
+  background-color: #fff;
+}
+
+.c-title {
+  font-size: 20px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.c-num {
+  font-size: 32px;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+
+.label {
+  padding: 4px 8px;
+  border-radius: 12px;
+  display: inline-block;
+  color: #979797;
+}
+
+.label-suscss {
+  background-color: #F1F333;
+  color: #000;
+}
+
+.danger {
+  color: #FE6F50 !important;
+}
+
+.nav-link {
+  color: #888;
+}
+.nav-link.active {
+  background-color: #000;
+  color: #fff;
+}
+
+#Dept_overtime .position-relative {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+#Dept_overtime .position-relative .c-num {
+  margin-top: -17px;
+  position: absolute;
+}
+
+.count-bar {
+  border: 1px solid #d8d8d6;
+  background: #f4f4f4;
+  border-radius: 8px;
+  padding: 4px 12px;
+  min-height: 38px;
+  color: #666;
+}
+
+.filter-section {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.filter-section input, .filter-section select {
+  border: 1px solid #d8d8d6;
+  background: #f4f4f4;
+  width: auto;
+}
+.filter-section input {
+  width: 30%;
+}
+.filter-section select {
+  width: 16%;
+}
+
+.cpill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 11.5px;
+  font-weight: 600;
+  margin-right: 4px;
+}
+.cpill.h {
+  background: #FE6F50;
+  color: #FEF3F2;
+  border: 1px solid #FECDCA;
+}
+.cpill.m {
+  background: #FFC900;
+  color: #FFFAEB;
+  border: 1px solid #FEDF89;
+}
+.cpill.l {
+  background: #23A094;
+  color: #ECFDF3;
+  border: 1px solid #A9EFC5;
+}
+
+.n {
+  margin-right: 4px;
+}
+
+#filter-count-high {
+  color: #FE6F50;
+}
+
+#filter-count-medium {
+  color: #ff9b00;
+}
+
+#filter-count-low {
+  color: #23A094;
+}
+
+.table-wrapper {
+  border-radius: 8px;
+  border: 1px solid #d8d8d6;
+}
+.table-wrapper .styled-table > thead th {
+  background: #f4f4f4 !important;
+  color: #666;
+  font-size: 14px;
+}
+.table-wrapper .styled-table > tbody tr:hover, .table-wrapper .styled-table > tbody td:hover {
+  background: #f8f8f8;
+}
+.table-wrapper .styled-table > tbody td {
+  background: none;
+}
+
+/* What-If */
+.whatif-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.whatif-row label {
+  flex: 0 0 110px;
+  font-size: 13px;
+  color: #444;
+}
+
+.whatif-row input[type=range] {
+  flex: 1;
+}
+
+.whatif-row .val-badge {
+  flex: 0 0 42px;
+  text-align: center;
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #212529;
+  border: 1px solid #e5e5e5;
+}
+
+/* ── WebKit (Chrome / Safari / Edge) ── */
+input[type=range] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+       appearance: none;
+  height: 4px;
+  border-radius: 4px;
+  background: linear-gradient(to right, #000000 0%, #000000 var(--val, 50%), #dddddd var(--val, 50%), #dddddd 100%);
+  outline: none;
+  cursor: pointer;
+}
+
+/* ── 快速勾選篩選器 ─────────────────────────── */
+.chip-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 8px 4px;
+}
+
+.chip-filter-label {
+  font-size: 14px;
+  color: #555;
+  font-weight: 600;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+
+.chip-check {
+  cursor: pointer;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+
+.chip-check input {
+  display: none;
+}
+
+.chip-check span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 13px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border: 1.5px solid #ddd;
+  background: #fff;
+  color: #555;
+  transition: all 0.15s;
+}
+
+.chip-check:hover span {
+  border-color: #888;
+  color: #222;
+}
+
+.chip-check input:checked + span {
+  background: #212529;
+  color: #fff;
+  border-color: #212529;
+}
+
+/* 各 chip 啟用後的個別顏色 */
+#chk_ot:checked + span {
+  background: #FE6F50;
+  border-color: #FE6F50;
+}
+
+#chk_new:checked + span {
+  background: #6366f1;
+  border-color: #6366f1;
+}
+
+#chk_dist:checked + span {
+  background: #0ea5e9;
+  border-color: #0ea5e9;
+}
+
+#chk_sat:checked + span {
+  background: #f59e0b;
+  border-color: #f59e0b;
+}
+
+/* 拇指 (Chrome / Safari) */
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #000;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  -webkit-transition: transform 0.15s;
+  transition: transform 0.15s;
+}
+
+input[type=range]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+/* 拇指 (Firefox) */
+input[type=range]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #000;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+/* 已填充軌道 (Firefox) */
+input[type=range]::-moz-range-progress {
+  background: #000;
+  height: 4px;
+  border-radius: 4px;
+}
+
+@media screen and (max-width: 1024px) {
+  aside {
+    display: none;
+  }
+  main {
+    width: 100%;
+    margin-left: 0;
+    padding: 0.5rem 2.5rem;
+  }
+}/*# sourceMappingURL=style.css.map */
