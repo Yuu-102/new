@@ -4,11 +4,24 @@ import numpy as np
 import joblib
 import os
 import warnings
+from functools import wraps
 from sklearn.exceptions import InconsistentVersionWarning
 
 warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
 
 app = Flask(__name__)
+
+# ── API 金鑰驗證 ──────────────────────────────────────────────────
+API_KEY = os.environ.get("API_KEY")
+
+def require_api_key(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.headers.get("Authorization", "")
+        if auth != f"Bearer {API_KEY}":
+            return jsonify({"error": "Unauthorized"}), 401
+        return f(*args, **kwargs)
+    return decorated
 
 # ── 常數 ──────────────────────────────────────────────────────────
 RISK_RULES = [
@@ -56,7 +69,6 @@ EDU_FIELD_COLS = [
 XGB_MODEL_PATH = 'xgb_model.pkl'
 PCA_MODEL_PATH = 'edu_pca_model.pkl'
 RAW_DATA_PATH  = 'WA_Fn-UseC_-HR-Employee-Attrition.csv'
-# useData.csv 不再使用
 
 try:
     model = joblib.load(XGB_MODEL_PATH)
@@ -67,14 +79,7 @@ except Exception as e:
     model = pca = None
 
 # ── 核心特徵工程 ──────────────────────────────────────────────────
-# auto_predict 和 whatif 共用同一個函式，確保兩條路徑的特徵值完全一致，
-# 不會因路徑不同而造成「未調整就飄移」的問題。
 def build_features(raw: pd.Series, override_ot: str = None) -> pd.DataFrame:
-    """
-    從一列 WA_Fn raw row 建構 18 個模型特徵。
-    override_ot: 'Yes'/'No'，覆蓋 OverTime 欄位（用於 What-If 停止加班情境）。
-    HourlyRate 直接取 raw 欄位（獨立欄位，非 DailyRate/8）。
-    """
     ot_str = override_ot if override_ot in ('Yes', 'No') else str(raw.get('OverTime', 'No'))
     ot  = 1 if ot_str == 'Yes' else 0
     ms  = 1 if str(raw.get('MaritalStatus', '')) == 'Single' else 0
@@ -99,16 +104,15 @@ def build_features(raw: pd.Series, override_ot: str = None) -> pd.DataFrame:
     stk  = int(raw.get('StockOptionLevel',          0))
     ef   = str(raw.get('EducationField',            'Other'))
 
-    # Edu_PCA2：pca 模型存在時才算，否則用 0（兩條路徑一致）
     if pca is not None:
         one_hot  = [1 if f"EducationField_{ef}" == c else 0 for c in EDU_FIELD_COLS]
         edu_pca2 = float(pca.transform([one_hot])[0, 1])
     else:
         edu_pca2 = 0.0
 
-    bi = (12 - (env + job + wlb)) * (ot + 1)   # burnout_index
-    ls = dist * ot * ms                          # life_stress_index
-    ri = inc / LEVEL_MEDIANS.get(jl, 5000)      # relative_income
+    bi = (12 - (env + job + wlb)) * (ot + 1)
+    ls = dist * ot * ms
+    ri = inc / LEVEL_MEDIANS.get(jl, 5000)
 
     row = {
         "Age":                           age,
@@ -167,13 +171,13 @@ def dashboard():
 def new():
     return render_template('p3.html')
 
-
 @app.route('/pl3')
 def pl3():
     return render_template('pl3.html')
 
 
 @app.route('/auto_predict')
+@require_api_key
 def auto_predict():
     if not os.path.exists(RAW_DATA_PATH):
         return jsonify({"status": "error", "message": f"找不到 {RAW_DATA_PATH}"}), 404
@@ -182,7 +186,6 @@ def auto_predict():
     try:
         df_raw = get_raw_df().copy()
 
-        # 全員特徵工程（與 whatif 路徑完全相同的 build_features，不再讀 useData.csv）
         features_list = [
             build_features(df_raw.iloc[i]).iloc[0].to_dict()
             for i in range(len(df_raw))
@@ -191,7 +194,7 @@ def auto_predict():
 
         probs = model.predict_proba(X)[:, 1]
         df_raw['Attrition_Probability'] = [round(float(p) * 100, 2) for p in probs]
-        df_raw['Original_Index'] = df_raw.index  # 排序前記錄，whatif 用此對齊
+        df_raw['Original_Index'] = df_raw.index
 
         def enrich(row):
             prob = row['Attrition_Probability']
@@ -229,13 +232,13 @@ def auto_predict():
 
         avg_rate   = round(float(probs.mean()) * 100, 2)
         counts     = df_out['Risk_Level'].value_counts().to_dict()
+
         risk_stats = {
             "high":   counts.get("high",   0),
             "medium": counts.get("medium", 0),
             "low":    counts.get("low",    0),
         }
 
-        # 部門 × 職等 高風險率熱力圖（只含在職員工）
         heatmap_data = []
         if 'Department' in df_out.columns and 'JobLevel' in df_out.columns:
             active = df_out[df_out['Attrition'] != 'Yes'] \
@@ -271,7 +274,7 @@ def auto_predict():
             "overall_suggestion": f"整體離職風險為 {avg_rate}%",
             "risk_stats":         risk_stats,
             "heatmap_data":       heatmap_data,
-            "dept_risk": dept_risk,
+            "dept_risk":          dept_risk,
             "table_data":         df_out.to_dict(orient='records'),
             "whatif_fields":      WHATIF_FIELDS,
         })
@@ -281,6 +284,7 @@ def auto_predict():
 
 
 @app.route('/whatif', methods=['POST'])
+@require_api_key
 def whatif():
     if model is None:
         return jsonify({"error": "模型尚未載入"}), 500
@@ -291,15 +295,12 @@ def whatif():
 
         df_raw = get_raw_df()
 
-        # orig_prob：與 auto_predict 路徑完全相同，不會有基準飄移
         orig_prob = round(
             float(model.predict_proba(build_features(df_raw.iloc[original_idx]))[:, 1][0]) * 100, 2
         )
 
-        # 套用滑桿變更
         raw_row = df_raw.iloc[original_idx].copy()
 
-        # overtime_override：「停止加班」快捷鍵，字串欄位單獨處理
         override_ot = None
         if 'overtime_override' in changes:
             override_ot = changes.pop('overtime_override')
@@ -323,18 +324,13 @@ def whatif():
 
 
 @app.route('/predict', methods=['POST'])
+@require_api_key
 def predict():
-    """
-    供 pl3.html 個人輸入介面使用的預測端點。
-    接收單筆員工資料，回傳離職風險機率與特徵值。
-    對應原 FastAPI main.py 的 /predict 端點，特徵工程邏輯與 build_features() 對齊。
-    """
     if model is None:
         return jsonify({"error": "模型尚未載入"}), 500
     try:
         d = request.get_json()
 
-        # ── 解析輸入欄位（對應 main.py EmployeeInput schema）──────────────────
         age              = int(d.get('age', 30))
         marital_single   = bool(d.get('marital_single', False))
         education        = int(d.get('education', 3))
@@ -348,7 +344,7 @@ def predict():
         wlb              = int(d.get('work_life_balance', 3))
         perf             = int(d.get('performance_rating', 3))
         total_years      = int(d.get('total_working_years', 0))
-        overtime_str     = str(d.get('overtime', '否'))          # '否' / '有時' / '經常'
+        overtime_str     = str(d.get('overtime', '否'))
         years_company    = int(d.get('years_at_company', 0))
         since_promo      = int(d.get('years_since_promotion', 0))
         with_mgr         = int(d.get('years_with_curr_manager', 0))
@@ -356,32 +352,29 @@ def predict():
         monthly_income   = float(d.get('monthly_income', 0))
         monthly_rate     = float(d.get('monthly_rate', 0))
 
-        # ── 衍生變數 ──────────────────────────────────────────────────────────
         ot_val  = 1 if overtime_str in ('有時', '經常') else 0
         ms_val  = 1 if marital_single else 0
         bt_map  = {'Non-Travel': 0, 'Travel_Rarely': 1, 'Travel_Frequently': 2}
         bt_val  = bt_map.get(business_travel, 0)
 
-        # Edu PCA2
         if pca is not None:
             one_hot  = [1 if f"EducationField_{education_field}" == c else 0 for c in EDU_FIELD_COLS]
             edu_pca2 = float(pca.transform([one_hot])[0, 1])
         else:
             edu_pca2 = 0.0
 
-        burnout_index       = (12 - (env_sat + job_sat + wlb)) * (ot_val + 1)
-        life_stress_index   = distance * ot_val * ms_val
-        relative_income     = monthly_income / LEVEL_MEDIANS.get(job_level, 5000)
-        travel_roi          = relative_income / (bt_val + 1)
-        income_per_wy       = monthly_income / (total_years + 1)
-        dist_ot             = distance * ot_val
-        career_maturity     = total_years / (age - 18 + 1)
-        career_stagnation   = since_promo / (years_company + 1)
-        manager_loyalty     = with_mgr / (years_company + 1)
-        tenure_perf_buf     = years_company * perf
+        burnout_index        = (12 - (env_sat + job_sat + wlb)) * (ot_val + 1)
+        life_stress_index    = distance * ot_val * ms_val
+        relative_income      = monthly_income / LEVEL_MEDIANS.get(job_level, 5000)
+        travel_roi           = relative_income / (bt_val + 1)
+        income_per_wy        = monthly_income / (total_years + 1)
+        dist_ot              = distance * ot_val
+        career_maturity      = total_years / (age - 18 + 1)
+        career_stagnation    = since_promo / (years_company + 1)
+        manager_loyalty      = with_mgr / (years_company + 1)
+        tenure_perf_buf      = years_company * perf
         income_burnout_shock = np.log1p(monthly_income) / (burnout_index + life_stress_index + 1)
-        # HourlyRate：pl3.html 傳入 daily_rate，按 main.py 邏輯 daily_rate/8
-        hourly_rate         = daily_rate / 8
+        hourly_rate          = daily_rate / 8
 
         row = {
             "Age":                           age,
@@ -422,5 +415,4 @@ def predict():
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=7860, debug=False)
-    #app.run(debug=True)
+    app.run(debug=True)
