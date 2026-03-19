@@ -25,3 +25,6 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/hr-radar:latest
+
+      - name: Trigger Render Deploy
+        run: curl ${{ secrets.DEPLOY_HOOK }}
